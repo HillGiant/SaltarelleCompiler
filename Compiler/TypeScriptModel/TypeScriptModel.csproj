@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TypeScriptModel</RootNamespace>
     <AssemblyName>TypeScriptModel</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,35 +44,74 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-    </Compile>
     <Compile Include="..\CompilerVersion.cs">
       <Link>Properties\CompilerVersion.cs</Link>
     </Compile>
-    <Compile Include="Model\ArrayType.cs" />
-    <Compile Include="Model\CompositeType.cs" />
-    <Compile Include="Model\Constructor.cs" />
-    <Compile Include="Model\Parameter.cs" />
-    <Compile Include="Model\Function.cs" />
-    <Compile Include="Model\FunctionType.cs" />
-    <Compile Include="Model\Globals.cs" />
-    <Compile Include="Model\Indexer.cs" />
-    <Compile Include="Model\Interface.cs" />
-    <Compile Include="Model\Member.cs" />
-    <Compile Include="Model\Module.cs" />
-    <Compile Include="Model\ModuleImport.cs" />
+    <Compile Include="CodeBuilder.cs" />
+    <Compile Include="Expressions\JsArrayLiteralExpression.cs" />
+    <Compile Include="Expressions\JsBinaryExpression.cs" />
+    <Compile Include="Expressions\JsCommaExpression.cs" />
+    <Compile Include="Expressions\JsConditionalExpression.cs" />
+    <Compile Include="Expressions\JsConstantExpression.cs" />
+    <Compile Include="Expressions\JsExpression.cs" />
+    <Compile Include="Expressions\JsFunctionDefinitionExpression.cs" />
+    <Compile Include="Expressions\JsIdentifierExpression.cs" />
+    <Compile Include="Expressions\JsInvocationExpression.cs" />
+    <Compile Include="Expressions\JsMemberAccessExpression.cs" />
+    <Compile Include="Expressions\JsNewExpression.cs" />
+    <Compile Include="Expressions\JsObjectLiteralExpression.cs" />
+    <Compile Include="Expressions\JsObjectLiteralProperty.cs" />
+    <Compile Include="Expressions\JsThisExpression.cs" />
+    <Compile Include="Expressions\JsUnaryExpression.cs" />
+    <Compile Include="ExtensionMethods\ExtensionMethods.cs" />
+    <Compile Include="Require.cs" />
+    <Compile Include="Statements\JsAwaitStatement.cs" />
+    <Compile Include="Statements\JsBlockStatement.cs" />
+    <Compile Include="Statements\JsBreakStatement.cs" />
+    <Compile Include="Statements\JsCatchClause.cs" />
+    <Compile Include="Statements\JsComment.cs" />
+    <Compile Include="Statements\JsContinueStatement.cs" />
+    <Compile Include="Statements\JsDoWhileStatement.cs" />
+    <Compile Include="Statements\JsEmptyStatement.cs" />
+    <Compile Include="Statements\JsExpressionStatement.cs" />
+    <Compile Include="Statements\JsForEachInStatement.cs" />
+    <Compile Include="Statements\JsForStatement.cs" />
+    <Compile Include="Statements\JsFunctionStatement.cs" />
+    <Compile Include="Statements\JsGotoStatement.cs" />
+    <Compile Include="Statements\JsIfStatement.cs" />
+    <Compile Include="Statements\JsLabelStatement.cs" />
+    <Compile Include="Statements\JsReturnStatement.cs" />
+    <Compile Include="Statements\JsStatement.cs" />
+    <Compile Include="Statements\JsSwitchSection.cs" />
+    <Compile Include="Statements\JsSwitchStatement.cs" />
+    <Compile Include="Statements\JsThrowStatement.cs" />
+    <Compile Include="Statements\JsTryStatement.cs" />
+    <Compile Include="Statements\JsVariableDeclaration.cs" />
+    <Compile Include="Statements\JsVariableDeclarationStatement.cs" />
+    <Compile Include="Statements\JsWhileStatement.cs" />
+    <Compile Include="Statements\JsWithStatement.cs" />
+    <Compile Include="Statements\JsYieldStatement.cs" />
+    <Compile Include="TypeSystem\TsArrayType.cs" />
+    <Compile Include="TypeSystem\TsCompositeType.cs" />
+    <Compile Include="TypeSystem\TsConstructor.cs" />
+    <Compile Include="TypeSystem\TsParameter.cs" />
+    <Compile Include="TypeSystem\TsFunction.cs" />
+    <Compile Include="TypeSystem\TsFunctionType.cs" />
+    <Compile Include="TypeSystem\TsGlobals.cs" />
+    <Compile Include="TypeSystem\TsIndexer.cs" />
+    <Compile Include="TypeSystem\TsInterface.cs" />
+    <Compile Include="TypeSystem\TsMember.cs" />
+    <Compile Include="TypeSystem\TsModule.cs" />
+    <Compile Include="TypeSystem\TsModuleImport.cs" />
     <Compile Include="OutputFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Model\TSType.cs" />
-    <Compile Include="Model\Variable.cs" />
-    <Compile Include="Model\TypeReference.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\JSModel\JSModel.csproj">
-      <Project>{c84df308-9ebf-4521-9ca2-5c531f4b245a}</Project>
-      <Name>JSModel</Name>
-    </ProjectReference>
+    <Compile Include="TypeSystem\TsType.cs" />
+    <Compile Include="TypeSystem\TsVariable.cs" />
+    <Compile Include="TypeSystem\TsTypeReference.cs" />
+    <Compile Include="Visitors\IExpressionVisitor.cs" />
+    <Compile Include="Visitors\IMemberVisitor.cs" />
+    <Compile Include="Visitors\IStatementVisitor.cs" />
+    <Compile Include="Visitors\ITypeVisitor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

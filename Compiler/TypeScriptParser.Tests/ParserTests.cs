@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using TypeScriptModel;
 
@@ -28,7 +24,8 @@ namespace TypeScriptParser.Tests {
 
 		private void Roundtrip(string s) {
 			var model = Parser.Parse(s, new ThrowingErrorReporter());
-			var actual = OutputFormatter.Format(model);
+            var fmt = new OutputFormatter(true);
+            var actual = fmt.Format(model);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(s.Replace("\r\n", "\n")));
 		}
 
