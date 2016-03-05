@@ -44,15 +44,19 @@ tokens {
 // Typescript reserved words
 	ABSTRACT	= 'abstract' ;
 	CLASS 		= 'class' ;
-	DECLARE   = 'declare';
+	DECLARE   	= 'declare';
 	INTERFACE 	= 'interface' ;
-	EXTENDS   = 'extends';
-	MODULE    = 'module';
-	EXPORT    = 'export';
-	IMPORT    = 'import';
+	EXTENDS   	= 'extends';
+	MODULE    	= 'module';
+	EXPORT    	= 'export';
+	IMPORT    	= 'import';
 	PRIVATE 	= 'private' ;
 	PROTECTED 	= 'protected' ;
 	PUBLIC		= 'public' ;
+	CONSTRUCTOR 	= 'constructor' ;
+	GET 		= 'get' ;
+	SET 		= 'set' ;
+	REQUIRE		= 'require';
 
 // Typescript predefined types
 	ANY		= 'any' ;
@@ -193,7 +197,7 @@ tokens {
 }
 
 //
-// $<	A.1 Lexical Grammar (7)
+// $<	A.1 Lexical Grammar
 //
 
 // Added for lexing purposes
@@ -1515,12 +1519,8 @@ callSignature:
 // $<	3.8.2.2 Parameter List
 
 parameterList:
-    parameters (COMMA restParameter)?
+    parameter ( COMMA parameter )* (COMMA restParameter)?
   | restParameter
-    ;
-
-parameters:
-    parameter ( COMMA parameter )*
     ;
 
 accessibilityModifier:
@@ -1566,6 +1566,178 @@ typeAliasDeclaration:
 typeAnnotation:
     COLON type
     ;
+
+// $<	5 Interfaces
+
+interfaceDeclaration:
+	INTERFACE Identifier typeParameters? extendsClause? objectType
+	;
+	
+extendsClause:	
+	EXTENDS Identifier (COMMA Identifier)*
+	;
+
+// $>
+
+// $<   6 Classes
+
+classDeclaration:
+	INTERFACE Identifier typeParameters? extendsClause? implementsClause? LBRACE classBody RBRACE
+	;
+	
+implementsClause:	
+	IMPLEMENTS Identifier (COMMA Identifier)*
+	;
+
+classBody:	
+	classElement*
+	;
+	
+classElement
+	: constructorDeclaration 
+	| memberVariableDeclaration 
+	| memberFunctionDeclaration 
+	| memberAccessorDeclaration 
+	| indexSignature 
+	;
+		
+constructorDeclaration:	
+	constructorOverload *
+	constructorImplementation
+	;
+	
+constructorOverload:
+	accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN SEMIC
+	;
+	
+constructorImplementation:	
+	accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN functionBody
+	;
+	
+memberVariableDeclaration:	
+	accessibilityModifier? STATIC? Identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
+	;
+	
+memberFunctionDeclaration:	
+	membertFunctionOverload *
+	membertFunctionImplementation
+	;
+	
+membertFunctionOverload:
+	accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
+	;
+	
+membertFunctionImplementation
+	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN functionBody
+	;
+	
+memberAccessorDeclaration
+	: accessibilityModifier? STATIC? getAccessor
+	| accessibilityModifier? STATIC? setAccessor
+	;
+	
+getAccessor
+	: GET Identifier LPAREN RPAREN typeAnnotation? functionBody
+	;
+	
+setAccessor
+	: SET Identifier LPAREN Identifier typeAnnotation? RPAREN typeAnnotation functionBody
+	;
+
+// $>
+
+
+// $<   7 Enums
+enumDeclaration:	
+	CONST? ENUM Identifier LBRACE enumBody RBRACE
+	;
+	
+enumBody:
+	(enumMember COMMA)*
+	enumMember
+	;
+
+enumMember:
+	Identifier( ASSIGN^ assignmentExpression )?
+	;
+
+// $>
+
+// $<   8 Internal Modules
+
+moduleDeclaration
+	: MODULE qName moduleBody
+	;
+	
+moduleBody:	
+LBRACE (moduleElement COMMA)* moduleElement? RBRACE
+	;
+	
+moduleElement
+	: statement
+	| variableDeclaration
+	| functionDeclaration
+	| classDeclaration
+	| interfaceDeclaration
+	| typeAliasDeclaration
+	| enumDeclaration
+	| moduleDeclaration
+	| importDeclaration
+	//| ambientDeclaration
+	;
+
+importDeclaration
+	: IMPORT Identifier ASSIGN qName
+	;
+
+// $>
+
+// $<   9 Source Files and External Modules
+
+sourceFile	
+	: implementationSourceFile
+	;
+	
+implementationSourceFile
+	: implementationElement *
+	;
+
+implementationElement
+	: moduleElement
+	| exportAssignment
+	| ambientExportModuleDeclaration
+	| EXPORT? externalImportDeclaration
+	;
+	
+externalImportDeclaration
+	: IMPORT Identifier ASSIGN REQUIRE LPAREN StringLiteral RPAREN
+	;
+	
+exportAssignment
+	: EXPORT ASSIGN Identifier
+	;
+	
+ambientExportModuleDeclaration
+	: DECLARE MODULE StringLiteral ambientExportModuleBody
+	;
+	
+	
+ambientExportModuleBody
+	: ambientExternalModuleElement *
+	;
+	
+ambientExternalModuleElement
+	: ambientModuleElement
+	| exportAssignment
+	| EXPORT ? externalImportDeclaration
+	;
+	
+ambientModuleElement
+	:	
+	;
+// $>
+
+
 
 /*
 ident
@@ -1649,3 +1821,4 @@ functionType
 
 
 // $>*/
+// $>
