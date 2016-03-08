@@ -1360,8 +1360,14 @@ typeArgument
 
 // $<	Types (3.7)
 
-type:
-    primaryOrUnionType
+type
+options
+{
+	k = 4 ;
+	backtrack = true;
+}
+    : primaryType
+    | unionType
     | functionType
     | constructorType
     ;
@@ -1371,8 +1377,8 @@ options
 {
 	k = 4 ;
 	backtrack = true;
-}:
-      predefinedType
+}
+    : predefinedType
     | typeReference
     | objectType
     | typeQuery
@@ -1381,38 +1387,26 @@ options
     | unionType
 	;
 
-primaryOrUnionType
-options
-{
-	k = 4 ;
-	backtrack = true;
-}:
-    primaryType
-    | unionType
-    ;
 
 // Intentionally ignoring parenthesised types because we shouldn't need to output them
 primaryType
 options
 {
 	k = 4 ;
-		backtrack = true;
-}:
-   (predefinedType
+	backtrack = true;
+}
+    : predefinedType
     | typeReference
     | objectType
     | tupleType
-    | typeQuery)(LBRACK RBRACK)*
-    ;
-
-parenthesizedType:
-    LPAREN type RPAREN
+    | typeQuery
+    (LBRACK RBRACK)*
     ;
     
 // $<	Predefined Types (3.7.1)
 
-predefinedType:
-    ANY
+predefinedType
+    : ANY
     | NUMBER
     | BOOLEAN
     | STRING
@@ -1423,12 +1417,12 @@ predefinedType:
 
 // $<	Type References (3.7.2)
 
-typeReference:
-    typeName^ { PromoteEOL(null); } typeArguments?
+typeReference
+    : typeName^ { PromoteEOL(null); } typeArguments?
     ;
 
-typeName:
-    Identifier
+typeName
+    : Identifier
     | qName
     ;
 
@@ -1439,12 +1433,12 @@ qName
 // $>
 // $<	3.7.3 Object Type Literals
 
-objectType:
-    LBRACE typeMember* RBRACE
+objectType
+    : LBRACE typeMember* RBRACE
     ;
 
-typeMember:
-    propertySignature semic
+typeMember
+    : propertySignature semic
     | callSignature semic
     | constructSignature semic
     | indexSignature semic
@@ -1455,45 +1449,40 @@ typeMember:
 // $<	3.7.5 Tuple Type Literals
 
 // Limit to non-tuple types for LL parser friendlyness
-tupleType:
-    LBRACK nonTupleType (COMMA type)* RBRACK
+tupleType
+    : LBRACK nonTupleType (COMMA type)* RBRACK
     ;
 
 // $>
 
 // $<	3.7.6 Union Type Literals
 
-unionType:
-    primaryType (OR primaryType)+
+unionType
+    : primaryType (OR primaryType)+
     ;
 
 // $>
 
 // $<	3.7.7 Function Type Literals
 
-functionType:
-    typeParameters? LPAREN parameterList RPAREN ARROW type
+functionType
+    : typeParameters? LPAREN parameterList RPAREN ARROW type
     ;
 
 // $>
 
 // $<	3.7.8 Constructor Type Literals
 
-constructorType:
-    NEW typeParameters? LPAREN parameterList RPAREN ARROW type
+constructorType
+    : NEW typeParameters? LPAREN parameterList RPAREN ARROW type
     ;
 
 // $>
 
 // $<	3.7.9 Type Queries
 
-typeQuery:
-    TYPEOF typeQueryExpression
-    ;
-    
-typeQueryExpression:
-    Identifier
-    typeQueryExpression DOT Identifier
+typeQuery
+    : TYPEOF^ (Identifier | qName)
     ;
     
 // $>
@@ -1502,95 +1491,95 @@ typeQueryExpression:
 
 // $<	3.8.1 Property Signatures
 
-propertySignature:
-    propertyName QUE? typeAnnotation?
+propertySignature
+    : propertyName QUE? typeAnnotation?
     ;
 
 // $>
 
 // $<	3.8.2 Call Signatures
 
-callSignature:
-    typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
+callSignature
+    : typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
     ;
 
 // $>
 
 // $<	3.8.2.2 Parameter List
 
-parameterList:
-    parameter ( COMMA parameter )* (COMMA restParameter)?
-  | restParameter
+parameterList
+    : parameter ( COMMA parameter )* (COMMA restParameter)?
+    | restParameter
     ;
 
-accessibilityModifier:
-    PUBLIC
-    |PRIVATE
-    |PROTECTED
+accessibilityModifier
+    : PUBLIC
+    | PRIVATE
+    | PROTECTED
     ;
 
-parameter:
-    accessibilityModifier? Identifier QUE? typeAnnotation?( ASSIGN^ assignmentExpression )?
+parameter
+    : accessibilityModifier? Identifier QUE? typeAnnotation?( ASSIGN^ assignmentExpression )?
     | Identifier COLON StringLiteral
     ;
 
-restParameter:
-    ELLIPSIS Identifier typeAnnotation?
+restParameter
+    : ELLIPSIS Identifier typeAnnotation?
     ;
 
 // $>
 
 // $<	3.8.3 Construct Signature
-constructSignature:
-    NEW typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
+constructSignature
+    : NEW typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
     ;
 // $>
 
-indexSignature:
-    LBRACE Identifier COLON (STRING | NUMBER) RBRACE typeAnnotation
+indexSignature
+    : LBRACE Identifier COLON (STRING | NUMBER) RBRACE typeAnnotation
     ;
 
-methodSignature:
-    propertyName QUE? callSignature
+methodSignature
+    : propertyName QUE? callSignature
     ;
 
 // $<	3.9 Type Aliases
 
-typeAliasDeclaration:
-    type Identifier EQ type semic
+typeAliasDeclaration
+    : TYPE Identifier EQ type semic
     ;
 
 // $>
 
 
-typeAnnotation:
-    COLON type
+typeAnnotation
+    : COLON type
     ;
 
 // $<	5 Interfaces
 
-interfaceDeclaration:
-	INTERFACE Identifier typeParameters? extendsClause? objectType
+interfaceDeclaration
+	: INTERFACE Identifier typeParameters? extendsClause? objectType
 	;
 	
-extendsClause:	
-	EXTENDS Identifier (COMMA Identifier)*
+extendsClause
+	: EXTENDS Identifier (COMMA Identifier)*
 	;
 
 // $>
 
 // $<   6 Classes
 
-classDeclaration:
-	INTERFACE Identifier typeParameters? extendsClause? implementsClause? LBRACE classBody RBRACE
+classDeclaration
+	: CLASS Identifier typeParameters? extendsClause? implementsClause? LBRACE classBody RBRACE
 	;
 	
-implementsClause:	
-	IMPLEMENTS Identifier (COMMA Identifier)*
+implementsClause	
+	: IMPLEMENTS Identifier (COMMA Identifier)*
 	;
 
-classBody:	
-	classElement*
+classBody
+	: classElement*
 	;
 	
 classElement
@@ -1601,30 +1590,28 @@ classElement
 	| indexSignature 
 	;
 		
-constructorDeclaration:	
-	constructorOverload *
-	constructorImplementation
+constructorDeclaration
+	: constructorOverload* constructorImplementation
 	;
 	
-constructorOverload:
-	accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN SEMIC
+constructorOverload
+	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN SEMIC
 	;
 	
-constructorImplementation:	
-	accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN functionBody
+constructorImplementation	
+	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN functionBody
 	;
 	
-memberVariableDeclaration:	
-	accessibilityModifier? STATIC? Identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
+memberVariableDeclaration
+	: accessibilityModifier? STATIC? Identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
 	;
 	
-memberFunctionDeclaration:	
-	membertFunctionOverload *
-	membertFunctionImplementation
+memberFunctionDeclaration	
+	: membertFunctionOverload* membertFunctionImplementation
 	;
 	
-membertFunctionOverload:
-	accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
+membertFunctionOverload
+	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
 	;
 	
 membertFunctionImplementation
@@ -1648,17 +1635,16 @@ setAccessor
 
 
 // $<   7 Enums
-enumDeclaration:	
-	CONST? ENUM Identifier LBRACE enumBody RBRACE
+enumDeclaration	
+	: CONST? ENUM Identifier LBRACE enumBody RBRACE
 	;
 	
-enumBody:
-	(enumMember COMMA)*
-	enumMember
+enumBody
+	: (enumMember COMMA)* enumMember
 	;
 
-enumMember:
-	Identifier( ASSIGN^ assignmentExpression )?
+enumMember
+	: Identifier( ASSIGN^ assignmentExpression )?
 	;
 
 // $>
@@ -1669,8 +1655,8 @@ moduleDeclaration
 	: MODULE qName moduleBody
 	;
 	
-moduleBody:	
-LBRACE (moduleElement COMMA)* moduleElement? RBRACE
+moduleBody	
+    : LBRACE (moduleElement COMMA)* moduleElement? RBRACE
 	;
 	
 moduleElement
