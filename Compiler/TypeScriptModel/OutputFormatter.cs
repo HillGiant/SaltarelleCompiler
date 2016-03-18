@@ -12,7 +12,7 @@ namespace TypeScriptModel {
 
     using TypeScriptModel.ExtensionMethods;
 
-    public class OutputFormatter : ITypeVisitor<object, bool>, IMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>
+    public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>
     {
         private readonly bool _allowIntermediates;
 
@@ -69,11 +69,11 @@ namespace TypeScriptModel {
             }
         }
 
-		private void FormatGlobalMember(TsMember member, string prefix) {
+		private void FormatGlobalMember(TsTypeMember typeMember, string prefix) {
 			if (!string.IsNullOrEmpty(prefix))
 				_cb.Append(prefix).Append(" ");
-			_cb.Append(member is TsFunction ? "function " : "var ");
-			member.Accept(this, false);
+			_cb.Append(typeMember is TsMethodSignature ? "function " : "var ");
+			typeMember.Accept(this, false);
 			_cb.AppendLine();
 		}
 
@@ -112,7 +112,7 @@ namespace TypeScriptModel {
 			  .AppendLine("}");
 		}
 
-		private void FormatMemberList(IEnumerable<TsMember> members) {
+		private void FormatMemberList(IEnumerable<TsTypeMember> members) {
             _cb.AppendLine("{")
 			  .Indent();
             foreach (var m in members)
@@ -155,7 +155,7 @@ namespace TypeScriptModel {
             return null;
         }
 
-        public object VisitCompositeType(TsCompositeType type, bool data)
+        public object VisitObjectType(TsObjectType type, bool data)
         {
             FormatMemberList(type.Members);
             return null;
@@ -163,10 +163,35 @@ namespace TypeScriptModel {
 
         public object VisitFunctionType(TsFunctionType type, bool data)
         {
+            FormatTypeParameters(type.TypeParameters);
             FormatParameterList(type.Parameters);
             _cb.Append(" => ");
             type.ReturnType.Accept(this, false);
             return null;
+        }
+
+        private void FormatTypeParameters(IList<TsTypeParameter> typeParameters)
+        {
+            _cb.Append("<");
+            bool first = true;
+            foreach (var p in typeParameters)
+            {
+                if (!first)
+                    _cb.Append(", ");
+                this.FormatTypeParameter(p);
+                first = false;
+            }
+            _cb.Append(">");
+        }
+
+        private void FormatTypeParameter(TsTypeParameter typeParameter)
+        {
+            _cb.Append(typeParameter.Name);
+            if (typeParameter.Constraint != null)
+            {
+                this._cb.Append(" extends ");
+                typeParameter.Constraint.Accept(this, false);
+            }
         }
 
         public object VisitTypeReference(TsTypeReference type, bool data)
@@ -175,7 +200,7 @@ namespace TypeScriptModel {
             return null;
         }
 
-        public object VisitInterface(TsInterface iface, bool data)
+        public object VisitInterfaceType(TsInterfaceType iface, bool data)
         {
             _cb.Append("interface ").Append(iface.Name);
             for (int i = 0, n = iface.Extends.Count; i < n; i++)
@@ -188,61 +213,95 @@ namespace TypeScriptModel {
             return null;
         }
 
-        public object VisitFunction(TsFunction function, bool data)
+        public object VisitPrimitiveType(TsPrimitiveType tsPrimitiveType, bool data)
         {
-            _cb.Append(function.Name);
-            FormatParameterList(function.Parameters);
-            if (function.ReturnType != null)
+            switch (tsPrimitiveType.Primitive)
             {
-                _cb.Append(": ");
-                function.ReturnType.Accept(this, false);
+                case TsPrimitive.Any:
+                    _cb.Append("any");
+                    break;
+
+                case TsPrimitive.Number:
+                    _cb.Append("number");
+                    break;
+
+                case TsPrimitive.Boolean:
+                    _cb.Append("boolean");
+                    break;
+
+                case TsPrimitive.String:
+                    _cb.Append("string");
+                    break;
+
+                case TsPrimitive.Void:
+                    _cb.Append("string");
+                    break;
             }
+        }
+
+        public object VisitMethodSignature(TsMethodSignature methodSignature, bool data)
+        {
+            _cb.Append(methodSignature.Name);
+            FormatCallSignature(methodSignature);
             _cb.Append(";");
             return null;
         }
 
-        public object VisitConstructor(TsConstructor ctor, bool data)
+        public object VisitConstructorSignature(TsConstructorSignature ctor, bool data)
         {
             _cb.Append("new ");
-            FormatParameterList(ctor.Parameters);
-            if (ctor.ReturnType != null)
-            {
-                _cb.Append(": ");
-                ctor.ReturnType.Accept(this, false);
-            }
+            FormatCallSignature(ctor);
             _cb.Append(";");
             return null;
         }
 
-        public object VisitIndexer(TsIndexer indexer, bool data)
+        private void FormatCallSignature(IHasCallSignature item)
+        {
+            FormatTypeParameters(item.TypeParameters);
+            FormatParameterList(item.Parameters);
+            if (item.ReturnType != null)
+            {
+                _cb.Append(": ");
+                item.ReturnType.Accept(this, false);
+            }
+        }
+
+        public object VisitIndexSignature(TsIndexSignature indexSignature, bool data)
         {
             _cb.Append("[")
-              .Append(indexer.ParameterName);
-            if (indexer.ParameterType != null)
+              .Append(indexSignature.ParameterName);
+            if (indexSignature.ParameterType != null)
             {
                 _cb.Append(": ");
-                indexer.ParameterType.Accept(this, false);
+                indexSignature.ParameterType.Accept(this, false);
             }
             _cb.Append("]");
-            if (indexer.ReturnType != null)
+            if (indexSignature.ReturnType != null)
             {
                 _cb.Append(": ");
-                indexer.ReturnType.Accept(this, false);
+                indexSignature.ReturnType.Accept(this, false);
             }
             _cb.Append(";");
             return null;
         }
 
-        public object VisitVariable(TsVariable variable, bool data)
+        public object VisitPropertySignature(TsPropertySignature propertySignature, bool data)
         {
-            _cb.Append(variable.Name);
-            if (variable.Optional)
+            _cb.Append(propertySignature.Name);
+            if (propertySignature.Optional)
                 _cb.Append("?");
-            if (variable.Type != null)
+            if (propertySignature.Type != null)
             {
                 _cb.Append(": ");
-                variable.Type.Accept(this, false);
+                propertySignature.Type.Accept(this, false);
             }
+            _cb.Append(";");
+            return null;
+        }
+
+        public object VisitCallSignature(TsCallSignature callSignature, bool data)
+        {
+            FormatCallSignature(callSignature);
             _cb.Append(";");
             return null;
         }
@@ -420,7 +479,7 @@ namespace TypeScriptModel {
 
         public object VisitMemberAccessExpression(JsMemberAccessExpression expression, bool parenthesized)
         {
-            VisitExpression(expression.Target, expression.Target.NodeType == ExpressionNodeType.Number || expression.Target.NodeType == ExpressionNodeType.New || ((GetPrecedence(expression.Target.NodeType) > GetPrecedence(expression.NodeType)) && expression.Target.NodeType != ExpressionNodeType.MemberAccess && expression.Target.NodeType != ExpressionNodeType.Invocation)); // Ugly code to ensure that nested member accesses are not parenthesized, but member access nested in new are (and vice versa). Also we need to make sure that we output "(1).X" for that expression.
+            VisitExpression(expression.Target, expression.Target.NodeType == ExpressionNodeType.Number || expression.Target.NodeType == ExpressionNodeType.New || ((GetPrecedence(expression.Target.NodeType) > GetPrecedence(expression.NodeType)) && expression.Target.NodeType != ExpressionNodeType.MemberAccess && expression.Target.NodeType != ExpressionNodeType.Invocation)); // Ugly code to ensure that nested typeMember accesses are not parenthesized, but typeMember access nested in new are (and vice versa). Also we need to make sure that we output "(1).X" for that expression.
             _cb.Append(".");
             _cb.Append(expression.MemberName);
             return null;
@@ -533,7 +592,7 @@ namespace TypeScriptModel {
 
         private const int PrecedenceTerminal = 0;
         private const int PrecedenceMemberOrNewOrInvocation = PrecedenceTerminal + 1;
-        private const int PrecedenceFunctionDefinition = PrecedenceMemberOrNewOrInvocation + 1; // The function definition precedence is kind of strange. function() {}(x) does not invoke the function, although I guess this is due to semicolon insertion rather than precedence. Cheating with the precedence solves the problem.
+        private const int PrecedenceFunctionDefinition = PrecedenceMemberOrNewOrInvocation + 1; // The methodSignature definition precedence is kind of strange. methodSignature() {}(x) does not invoke the methodSignature, although I guess this is due to semicolon insertion rather than precedence. Cheating with the precedence solves the problem.
         private const int PrecedenceIncrDecr = PrecedenceFunctionDefinition + 1;
         private const int PrecedenceOtherUnary = PrecedenceIncrDecr + 1;
         private const int PrecedenceMultiply = PrecedenceOtherUnary + 1;

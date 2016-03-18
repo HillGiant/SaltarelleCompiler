@@ -2,20 +2,20 @@ using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.TypeSystem
 {
-    public class TsIndexer : TsMember {
+    public class TsIndexSignature : TsTypeMember {
 		public TsType ReturnType { get; private set; }
 		public string ParameterName { get; private set; }
 		public TsType ParameterType { get; private set; }
 
-		public TsIndexer(TsType returnType, string parameterName, TsType parameterType) {
+		public TsIndexSignature(TsType returnType, string parameterName, TsType parameterType) {
 			ReturnType    = returnType;
 			ParameterName = parameterName;
 			ParameterType = parameterType;
 		}
 
-	    public override TReturn Accept<TReturn, TData>(IMemberVisitor<TReturn, TData> visitor, TData data)
+	    public override TReturn Accept<TReturn, TData>(ITypeMemberVisitor<TReturn, TData> visitor, TData data)
 	    {
-	        return visitor.VisitIndexer(this, data);
+	        return visitor.VisitIndexSignature(this, data);
 	    }
     }
 }
