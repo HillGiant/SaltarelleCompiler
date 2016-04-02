@@ -33,6 +33,13 @@ namespace TypeScriptModel {
 		    return this._cb.ToString();
         }
 
+        public static string Format(TsType type, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates);
+            type.Accept(fmt, false);
+            return fmt._cb.ToString();
+        }
+
         public static string Format(JsExpression expression, bool allowIntermediates = false)
         {
             var fmt = new OutputFormatter(allowIntermediates);
@@ -44,6 +51,16 @@ namespace TypeScriptModel {
         {
             var fmt = new OutputFormatter(allowIntermediates);
             fmt.VisitStatement(statement, true);
+            return fmt._cb.ToString();
+        }
+
+        public static string Format(IList<JsStatement> statements, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates);
+            foreach (var statement in statements)
+            {
+                fmt.VisitStatement(statement, true);
+            }
             return fmt._cb.ToString();
         }
 
@@ -197,6 +214,19 @@ namespace TypeScriptModel {
         public object VisitTypeReference(TsTypeReference type, bool data)
         {
             _cb.Append(type.Name);
+            if (type.TypeArgs != null)
+            {
+                _cb.Append("<");
+                bool first = true;
+                foreach (var arg in type.TypeArgs)
+                {
+                    if (!first)
+                        _cb.Append(", ");
+                    arg.Accept(this, data);
+                    first = false;
+                }
+                _cb.Append(">");
+            }
             return null;
         }
 
@@ -234,9 +264,20 @@ namespace TypeScriptModel {
                     break;
 
                 case TsPrimitive.Void:
-                    _cb.Append("string");
+                    _cb.Append("void");
                     break;
             }
+            return null;
+        }
+
+        public object VisitUnionType(TsUnionType tsUnionType, bool data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitTupleType(TsTupleType tsTupleType, bool data)
+        {
+            throw new NotImplementedException();
         }
 
         public object VisitMethodSignature(TsMethodSignature methodSignature, bool data)

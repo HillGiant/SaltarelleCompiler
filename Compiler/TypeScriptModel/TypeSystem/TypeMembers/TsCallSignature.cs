@@ -6,14 +6,12 @@ namespace TypeScriptModel.TypeSystem
 
     public class TsCallSignature : TsTypeMember, IHasCallSignature
     {
-        public string Name { get; private set; }
         public TsType ReturnType { get; private set; }
         public IList<TsTypeParameter> TypeParameters { get; private set; }
         public IList<TsParameter> Parameters { get; private set; }
 
-        public TsCallSignature(string name, IEnumerable<TsTypeParameter> typeParameters, IEnumerable<TsParameter> parameters, TsType returnType)
+        public TsCallSignature(IEnumerable<TsTypeParameter> typeParameters, IEnumerable<TsParameter> parameters, TsType returnType)
         {
-            Name = name;
             ReturnType = returnType;
             Parameters = new List<TsParameter>(parameters).AsReadOnly();
             TypeParameters = new List<TsTypeParameter>(typeParameters).AsReadOnly();

@@ -15,5 +15,9 @@ namespace TypeScriptModel.Visitors
         TReturn VisitInterfaceType(TsInterfaceType type, TData data);
 
         TReturn VisitPrimitiveType(TsPrimitiveType tsPrimitiveType, TData data);
+
+        TReturn VisitUnionType(TsUnionType tsUnionType, TData data);
+
+        TReturn VisitTupleType(TsTupleType tsTupleType, TData data);
     }
 }

@@ -35,6 +35,7 @@ tokens {
 	THIS 		= 'this' ;
 	THROW 		= 'throw' ;
 	TRY 		= 'try' ;
+	TYPE 		= 'type' ;
 	TYPEOF 		= 'typeof' ;
 	VAR 		= 'var' ;
 	VOID 		= 'void' ;
@@ -153,7 +154,7 @@ tokens {
 	VAR_OPT;
 	CONSTRUCTOR;
 	INDEX;
-	COMPOSITE_TYPE;
+	OBJECT_TYPE;
 	ARGS ;
 	ARRAY ;
 	BLOCK ;
@@ -173,9 +174,15 @@ tokens {
 	PDEC ;
 	PINC ;
 	POS ;
-        TYPE_PARAMS;
-        TYPE_ARGS;
+    TYPE_PARAMS;
+    TYPE_ARGS;
 	FUNCTIONDECLARATION ;
+    TYPEREF;
+    PROP_SIG;
+    CALL_SIG;
+    CONST_SIG;
+    INDEX_SIG;
+    METH_SIG;
 }
 
 @lexer::namespace { TypeScriptParser.TypeScriptParserImpl }
@@ -1333,7 +1340,7 @@ options
 // $<	Type Parameters (3.5.1)
 
 typeConstraint
-    : EXTENDS^ Identifier
+    : EXTENDS^ type
     ;
 
 typeParameters
@@ -1341,7 +1348,7 @@ typeParameters
     ;
 
 typeParameter
-    : type typeConstraint?
+    : Identifier^ typeConstraint?
     ;
     
 // $>
@@ -1349,12 +1356,9 @@ typeParameter
 // $<	Type Arguments (3.5.2)
 
 typeArguments
-    : LT typeArgument (COMMA typeArgument)* GT-> ^(TYPE_ARGS typeArgument*)
+    : LT type (COMMA type)* GT-> ^(TYPE_ARGS type*)
     ;
 
-typeArgument
-    : type
-    ;
 
 // $>
 
@@ -1364,10 +1368,9 @@ type
 options
 {
 	k = 4 ;
-	backtrack = true;
 }
     : primaryType
-    | unionType
+    //| unionType
     | functionType
     | constructorType
     ;
@@ -1384,7 +1387,7 @@ options
     | typeQuery
     | functionType
     | constructorType
-    | unionType
+    // | unionType
 	;
 
 
@@ -1418,7 +1421,7 @@ predefinedType
 // $<	Type References (3.7.2)
 
 typeReference
-    : typeName^ { PromoteEOL(null); } typeArguments?
+    : typeName { PromoteEOL(null); } typeArguments? -> ^(TYPEREF typeName typeArguments?)
     ;
 
 typeName
@@ -1434,15 +1437,15 @@ qName
 // $<	3.7.3 Object Type Literals
 
 objectType
-    : LBRACE typeMember* RBRACE
+    : LBRACE (typeMember semic)* RBRACE -> ^(OBJECT_TYPE typeMember*)
     ;
 
 typeMember
-    : propertySignature semic
-    | callSignature semic
-    | constructSignature semic
-    | indexSignature semic
-    | methodSignature semic
+    : propertySignature
+    | callSignature
+    | constructSignature
+    | indexSignature
+    | methodSignature
     ;
 // $>
 
@@ -1492,7 +1495,7 @@ typeQuery
 // $<	3.8.1 Property Signatures
 
 propertySignature
-    : propertyName QUE? typeAnnotation?
+    : propertyName QUE? typeAnnotation? -> ^(PROP_SIG propertyName QUE? typeAnnotation?)
     ;
 
 // $>
@@ -1500,7 +1503,7 @@ propertySignature
 // $<	3.8.2 Call Signatures
 
 callSignature
-    : typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
+    : typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(CALL_SIG typeParameters? parameterList? typeAnnotation?)
     ;
 
 // $>
@@ -1508,7 +1511,7 @@ callSignature
 // $<	3.8.2.2 Parameter List
 
 parameterList
-    : parameter ( COMMA parameter )* (COMMA restParameter)?
+    : parameter ( COMMA parameter )* (COMMA restParameter)? -> ^(PARAMS parameter* restParameter)
     | restParameter
     ;
 
@@ -1553,7 +1556,7 @@ typeAliasDeclaration
 
 
 typeAnnotation
-    : COLON type
+    : COLON type -> ^(COLON type)
     ;
 
 // $<	5 Interfaces
@@ -1583,6 +1586,10 @@ classBody
 	;
 	
 classElement
+options
+{
+	k = 4 ;
+}
 	: constructorDeclaration 
 	| memberVariableDeclaration 
 	| memberFunctionDeclaration 
@@ -1591,12 +1598,12 @@ classElement
 	;
 		
 constructorDeclaration
-	: constructorOverload* constructorImplementation
+	: /*constructorOverload* */constructorImplementation
 	;
 	
-constructorOverload
+/*constructorOverload
 	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN SEMIC
-	;
+	;*/
 	
 constructorImplementation	
 	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN functionBody
@@ -1607,12 +1614,12 @@ memberVariableDeclaration
 	;
 	
 memberFunctionDeclaration	
-	: membertFunctionOverload* membertFunctionImplementation
+	: /*membertFunctionOverload**/ membertFunctionImplementation
 	;
 	
-membertFunctionOverload
+/*membertFunctionOverload
 	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
-	;
+	;*/
 	
 membertFunctionImplementation
 	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN functionBody
@@ -1635,7 +1642,7 @@ setAccessor
 
 
 // $<   7 Enums
-enumDeclaration	
+/*enumDeclaration	
 	: CONST? ENUM Identifier LBRACE enumBody RBRACE
 	;
 	
@@ -1645,33 +1652,33 @@ enumBody
 
 enumMember
 	: Identifier( ASSIGN^ assignmentExpression )?
-	;
+	;*/
 
 // $>
 
 // $<   8 Internal Modules
 
-moduleDeclaration
+/*moduleDeclaration
 	: MODULE qName moduleBody
 	;
 	
 moduleBody	
     : LBRACE (moduleElement COMMA)* moduleElement? RBRACE
-	;
+	;*/
 	
 moduleElement
-	: statement
-	| variableDeclaration
-	| functionDeclaration
+	: /*statement
+	|*/ variableDeclaration
+	//| functionDeclaration
 	| classDeclaration
 	| interfaceDeclaration
 	| typeAliasDeclaration
-	| enumDeclaration
-	| moduleDeclaration
+	//| enumDeclaration
+	//| moduleDeclaration
 	| importDeclaration
 	//| ambientDeclaration
 	;
-
+    
 importDeclaration
 	: IMPORT Identifier ASSIGN qName
 	;
@@ -1690,9 +1697,9 @@ implementationSourceFile
 
 implementationElement
 	: moduleElement
-	| exportAssignment
+	/*| exportAssignment
 	| ambientExportModuleDeclaration
-	| EXPORT? externalImportDeclaration
+	| EXPORT? externalImportDeclaration*/
 	;
 	
 externalImportDeclaration
@@ -1703,7 +1710,7 @@ exportAssignment
 	: EXPORT ASSIGN Identifier
 	;
 	
-ambientExportModuleDeclaration
+/*ambientExportModuleDeclaration
 	: DECLARE MODULE StringLiteral ambientExportModuleBody
 	;
 	
@@ -1720,8 +1727,12 @@ ambientExternalModuleElement
 	
 ambientModuleElement
 	:	
-	;
+	;*/
 // $>
+
+// $>
+
+
 
 
 
@@ -1781,7 +1792,7 @@ parameterDeclaration
 	| ELLIPSIS ident (COLON type)? -> ^(PARAM_ARRAY ident type?)
 	;
 
-type
+public type
 	: ( nestedIdentifier
 	  | compositeType
 	  | functionType
@@ -1807,4 +1818,3 @@ functionType
 
 
 // $>*/
-// $>

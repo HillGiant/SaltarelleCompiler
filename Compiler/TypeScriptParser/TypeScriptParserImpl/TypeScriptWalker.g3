@@ -394,6 +394,8 @@ propertyName returns [ string result ]
 	| x=numericLiteral { $result = ((JsConstantExpression)x).NumberValue.ToString(CultureInfo.InvariantCulture); }
 	;
 
+
+
 /*
 
 @header {
@@ -577,3 +579,75 @@ parameter returns [TsParameter result]
 	: ^((PARAM | PARAM_OPT { optional = true; } | PARAM_ARRAY { paramArray = true; }) i=Identifier t=type? { $result = new TsParameter(i.Text, t, optional, paramArray); })
 	;
         */
+
+public type returns [TsType result]
+    : (( t=typeReference )
+    |  ( t=primitiveType )
+    |  ( t=objectType ))
+	{ $result = t; }
+	;
+
+typeReference returns [TsType result]
+    : ^( TYPEREF n=Identifier args=typeArguments? ) 
+    { $result = new TsTypeReference(n.Text, args); }
+	;
+
+typeArguments returns [IList<TsType> result]
+    @init { var args = new List<TsType>(); }
+	: ^( TYPE_ARGS (a=type { args.Add(a); })* )
+    { $result = args; }
+    ;
+
+primitiveType returns [TsType result]
+    : (ANY) {$result = TsPrimitiveType.Any; }
+    | (NUMBER) {$result = TsPrimitiveType.Number; }
+    | (BOOLEAN) {$result = TsPrimitiveType.Boolean; }
+    | (STRING) {$result = TsPrimitiveType.String; }
+    | (VOID) {$result = TsPrimitiveType.Void; }
+    ;
+
+objectType returns [TsType result]
+    @init { var members = new List<TsTypeMember>(); }
+    : ^(OBJECT_TYPE (m=typeMember { members.Add(m); })*)
+    { $result = new TsObjectType(members); }
+    ;
+
+typeMember returns [TsTypeMember result]
+    : (( m=propertySignature )
+    | (m = callSignature)
+    )
+	{ $result = m; }
+	;
+
+propertySignature returns [TsTypeMember result]
+    @init { bool optional = false; }
+    : ^(PROP_SIG n=propertyName (QUE {optional = true;})? a=typeAnnotation?)
+	{ $result = new TsPropertySignature(n, a, optional); }
+	;
+
+typeAnnotation returns [TsType result]
+    : ^(COLON t=type)
+	{ $result = t; }
+    ;
+
+callSignature returns [TsTypeMember result]
+    : ^(CALL_SIG (typeParams = typeParameters)? (params = parameterList)? (annotation = typeAnnotation)?)
+	{ $result = new TsCallSignature(typeParams, params, annotation); }
+	;
+
+typeParameters returns [IList<TsTypeParameter> result]
+    @init { var params = new List<TsTypeParameter>(); }
+    : ^(TYPE_PARAMS (typeParameter {params.add(typeParameter};})*)
+    { $result = params  }
+    ;
+
+parameterList returns [IList<TsParameter> result]
+    @init { var params = new List<TsParameter>(); }
+    : ^(PARAMS (parameter {params.add(parameter};)* (restParameter {params.add(restParameter};))
+    | (restParameter {params.add(restParameter};)
+    { $result = params  }
+    ;
+
+typeParameter returns [TsTypeParameter result]
+    : type typeConstraint?
+    ;

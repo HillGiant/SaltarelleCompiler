@@ -5,8 +5,31 @@ using TypeScriptModel.Statements;
 using TypeScriptModel.TypeSystem;
 
 namespace TypeScriptParser {
-	public static class Parser {
-		public static IList<JsStatement> Parse(string source, IErrorReporter errorReporter) {
+    using TypeScriptModel.Expressions;
+
+    public static class Parser {
+		public static JsExpression ParseExpression(string source) {
+            var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source));
+   			CommonTokenStream tokens = new CommonTokenStream(lex);
+            var parser = new TypeScriptParserImpl.TypeScriptParser(tokens);
+
+			var r = parser.expression();
+            var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree));
+			return tree.expression();
+		}
+
+        public static JsStatement ParseStatement(string source)
+        {
+            var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source.Trim()));
+            CommonTokenStream tokens = new CommonTokenStream(lex);
+            var parser = new TypeScriptParserImpl.TypeScriptParser(tokens);
+
+            var r = parser.sourceElement();
+            var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree));
+            return tree.statement();
+        }
+
+        public static IList<JsStatement> Parse(string source, IErrorReporter errorReporter) {
 			var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source)) { ErrorReporter = errorReporter };
 			CommonTokenStream tokens = new CommonTokenStream(lex);
 			var parser = new TypeScriptParserImpl.TypeScriptParser(tokens) { ErrorReporter = errorReporter };
@@ -17,5 +40,18 @@ namespace TypeScriptParser {
 			var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
 			return tree.program();
 		}
+
+        public static TsType ParseType(string source, IErrorReporter errorReporter)
+        {
+            var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source)) { ErrorReporter = errorReporter };
+            CommonTokenStream tokens = new CommonTokenStream(lex);
+            var parser = new TypeScriptParserImpl.TypeScriptParser(tokens) { ErrorReporter = errorReporter };
+
+            var r = parser.type();
+            if (r.Tree == null)
+                return null;
+            var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
+            return tree.type();
+        }
 	}
 }
