@@ -394,196 +394,11 @@ propertyName returns [ string result ]
 	| x=numericLiteral { $result = ((JsConstantExpression)x).NumberValue.ToString(CultureInfo.InvariantCulture); }
 	;
 
-
-
-/*
-
-@header {
-using System;
-using TypeScriptModel.TypeSystem;
-using TypeScriptModel.Expressions;
-using TypeScriptModel.Statements;
-#pragma warning disable 219, 162, 3021
-}
-
-@members {
-	public override void ReportError(RecognitionException e) { ErrorReporter.ReportError(e.Line, e.CharPositionInLine, "Internal error: " + GetErrorMessage(e, TokenNames)); }
-	public IErrorReporter ErrorReporter { get; set; }
-
-	public string UnescapeStringLiteral(string orig) {
-		if (orig.IndexOf('\\') == -1)
-			return orig.Substring(1, orig.Length - 2);
-
-		var result = new System.Text.StringBuilder();
-		for (int i = 1; i < orig.Length - 1; i++) {
-			char ch = orig[i];
-			if (ch == '\\') {
-				ch = orig[++i];
-				if (ch == '\'')
-					result.Append('\'');
-				else if (ch == '\"')
-					result.Append('\"');
-				else if (ch == 'b')
-					result.Append('\b');
-				else if (ch == 'f')
-					result.Append('\f');
-				else if (ch == 'n')
-					result.Append('\n');
-				else if (ch == 'r')
-					result.Append('\r');
-				else if (ch == 't')
-					result.Append('\t');
-				else if (ch == 'v')
-					result.Append('\v');
-				else if (ch == '0')
-					result.Append('\0');
-				else if (ch == '/')
-					result.Append('/');
-				else
-					result.Append('\\').Append(ch);	// TODO: More escape sequences.
-			}
-			else
-				result.Append(ch);
-		}
-		return result.ToString();
-	}
-
-	public JsConstantExpression ParseRegexpLiteral(string orig) {
-		var pattern = new System.Text.StringBuilder();
-		int i = 1;
-		for (; i < orig.Length - 1; i++) {
-			char ch = orig[i];
-			if (ch == '\\') {
-				ch = orig[++i];
-				if (ch == '\'')
-					pattern.Append('\'');
-				else if (ch == '\"')
-					pattern.Append('\"');
-				else if (ch == 'b')
-					pattern.Append('\b');
-				else if (ch == 'f')
-					pattern.Append('\f');
-				else if (ch == 'n')
-					pattern.Append('\n');
-				else if (ch == 'r')
-					pattern.Append('\r');
-				else if (ch == 't')
-					pattern.Append('\t');
-				else if (ch == 'v')
-					pattern.Append('\v');
-				else if (ch == '0')
-					pattern.Append('\0');
-				else if (ch == '/')
-					pattern.Append('/');
-				else
-					pattern.Append('\\').Append(ch);	// TODO: More escape sequences.
-			}
-			else if (ch == '/')
-				break;
-			else
-				pattern.Append(ch);
-		}
-
-		string options = i < orig.Length - 1 ? orig.Substring(i + 1) : null;
-
-		return JsExpression.Regexp(pattern.ToString(), options);
-	}
-
-	public int DecodeOctalNumber(string value) {
-		int result = 0;
-		for (int i = 0; i < value.Length; i++)
-			result = result * 8 + (value[i] - '0');
-		return result;
-	}
-}
-
-public program returns [TsGlobals result]
-	@init { var modules = new List<TsModule>(); var interfaces = new List<TsInterface>(); var expressions = new List<JsStatement>(); }
-	: ( ^(DECLARE i=interfaceDeclaration { interfaces.Add(i); })
-	  | ^(DECLARE d=moduleDeclaration { modules.Add(d); })
-	  | s=statement { expressions.Add(s); }
-	  )*
-	  EOF
-	{ $result = new TsGlobals(modules, interfaces, members); }
-	;
-
-variableDeclaration returns [TsMember result]
-	: (x=Identifier t=type? { $result = new TsVariable(x.Text, t, false); })
-	| (x=Identifier l=parameterList t=type? { $result = new TsFunction(x.Text, t, l); })
-	;
-
-interfaceDeclaration returns [TsInterface result]
-	: ^(INTERFACE i=Identifier e=extendsDeclaration? t=compositeType) { $result = new TsInterface(i.Text, e ?? new List<TsTypeReference>(), t.Members); }
-	;
-
-extendsDeclaration returns [List<TsTypeReference> result]
-	@init { $result = new List<TsTypeReference>(); }
-	: ^(EXTENDS (t=typeReference { $result.Add(t); })+)
-	;
-
-moduleDeclaration returns [TsModule result]
-	@init { var imports = new List<TsModuleImport>(); var exportedMembers = new List<TsMember>(); var members = new List<TsMember>(); var exportedInterfaces = new List<TsInterface>(); var interfaces = new List<TsInterface>(); bool export = false; }
-	: ^(MODULE n=Identifier (  p=importDeclaration { imports.Add(p); }
-	                         | ^((DECLARE { export = false; } | EXPORT { export = true; }) (  (i=interfaceDeclaration { (export ? exportedInterfaces : interfaces).Add(i); })
-	                                                                                        | (v=variableDeclaration { (export ? exportedMembers : members).Add(v); })
-	                                                                                       ))
-	                        )*
-	  )
-	{ $result = new TsModule(n.Text, imports, exportedMembers, members, exportedInterfaces, interfaces); }
-	;
-
-importDeclaration returns [TsModuleImport result]
-	: ^(IMPORT a=Identifier m=Identifier) { $result = new TsModuleImport(m.Text, a.Text); }
-	;
-
-type returns [TsType result]
-	: tr=typeReference { $result = tr; }
-	| ct=compositeType { $result = ct; }
-	| at=arrayType { $result = at; }
-	| ft=functionType { $result = ft; }
-	;
-
-typeReference returns [TsTypeReference result]
-	: Identifier { $result = new TsTypeReference($Identifier.Text); }
-	;
-
-compositeType returns [TsCompositeType result]
-	@init { var members = new List<TsMember>(); }
-	: ^(COMPOSITE_TYPE (m=member { members.Add(m); })*)
-	{ $result = new TsCompositeType(members); }
-	;
-
-arrayType returns [TsArrayType result]
-	: ^(ARRAY_TYPE t=type) { $result = new TsArrayType(t); }
-	;
-
-functionType returns [TsFunctionType result]
-	: ^(FUNCTION_TYPE l=parameterList t=type?) { $result = new TsFunctionType(l, t); }
-	;
-
-member returns [TsMember result]
-	: ^(VAR Identifier t=type?) { $result = new TsVariable($Identifier.Text, t, false); }
-	| ^(VAR_OPT Identifier t=type?) { $result = new TsVariable($Identifier.Text, t, true); }
-	| ^(FUNCTION i=Identifier? l=parameterList t=type?) { $result = new TsFunction(i != null ? i.Text : null, t, l); }
-	| ^(CONSTRUCTOR l=parameterList t=type?) { $result = new TsConstructor(t, l); }
-	| ^(INDEX p=parameter t=type?) { $result = new TsIndexer(t, p.Name, p.Type); }
-	;
-
-parameterList returns [List<TsParameter> result]
-	@init { $result = new List<TsParameter>(); }
-	: ^(PARAMS (p=parameter { $result.Add(p); })* )
-	;
-
-parameter returns [TsParameter result]
-	@init { bool optional = false, paramArray = false; }
-	: ^((PARAM | PARAM_OPT { optional = true; } | PARAM_ARRAY { paramArray = true; }) i=Identifier t=type? { $result = new TsParameter(i.Text, t, optional, paramArray); })
-	;
-        */
-
 public type returns [TsType result]
     : (( t=typeReference )
     |  ( t=primitiveType )
     |  ( t=objectType ))
+    (ARRAY_TYPE {t= new TsArrayType(t);})*
 	{ $result = t; }
 	;
 
@@ -615,9 +430,12 @@ objectType returns [TsType result]
 typeMember returns [TsTypeMember result]
     : (( m=propertySignature )
     | (m = callSignature)
+    | (m = indexSignature)
+    | (m = methodSignature)
+    | (m = constructSignature)
     )
-	{ $result = m; }
-	;
+    { $result = m; }
+    ;
 
 propertySignature returns [TsTypeMember result]
     @init { bool optional = false; }
@@ -631,23 +449,65 @@ typeAnnotation returns [TsType result]
     ;
 
 callSignature returns [TsTypeMember result]
-    : ^(CALL_SIG (typeParams = typeParameters)? (params = parameterList)? (annotation = typeAnnotation)?)
-	{ $result = new TsCallSignature(typeParams, params, annotation); }
+    : ^(CALL_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+	{ $result = new TsCallSignature(typeParams, parameters, annotation); }
 	;
 
 typeParameters returns [IList<TsTypeParameter> result]
-    @init { var params = new List<TsTypeParameter>(); }
-    : ^(TYPE_PARAMS (typeParameter {params.add(typeParameter};})*)
-    { $result = params  }
-    ;
-
-parameterList returns [IList<TsParameter> result]
-    @init { var params = new List<TsParameter>(); }
-    : ^(PARAMS (parameter {params.add(parameter};)* (restParameter {params.add(restParameter};))
-    | (restParameter {params.add(restParameter};)
-    { $result = params  }
+    @init { var parameters = new List<TsTypeParameter>(); }
+    : ^(TYPE_PARAMS (t= typeParameter {parameters.Add(t);})*)
+    { $result = parameters; }
     ;
 
 typeParameter returns [TsTypeParameter result]
-    : type typeConstraint?
+    : ^((i = Identifier) (c = typeConstraint)?)
+    { $result = new TsTypeParameter(i.Text, c);  }
+    ;
+
+typeConstraint returns [TsType result]
+    : ^(EXTENDS (t=type))
+    { $result = t;  }
+    ;
+
+parameterList returns [IList<TsParameter> result]
+    @init { var parameters = new List<TsParameter>(); }
+    : (^(PARAMS (p=parameter {parameters.Add(p);})* (r=restParameter {parameters.Add(r);})?)
+    | (r=restParameter {parameters.Add(r);}))
+    { $result = parameters;  }
+    ;
+
+parameter returns [TsParameter result]
+    @init { var optional = false; }
+    : ^(PARAM (name=Identifier) (modifier = accessibilityModifier)? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
+    { $result = new TsParameter(name.Text, a, optional, false, modifier);  }
+    ;
+
+accessibilityModifier returns [AccessibilityModifier result]
+    : (PUBLIC) {$result = AccessibilityModifier.Public; }
+    | (PRIVATE) {$result = AccessibilityModifier.Private; }
+    | (PROTECTED) {$result = AccessibilityModifier.Protected; }
+    ;
+
+restParameter returns [TsParameter result]
+    : ^(ELLIPSIS (n=Identifier) (a=typeAnnotation)?)
+    { $result = new TsParameter(n.Text, a, false, true, null);  }
+    ;
+
+indexSignature returns [TsTypeMember result]
+    @init { TsPrimitiveType parameterType = null; }
+    :^(INDEX_SIG (n=Identifier) ((STRING {parameterType = TsPrimitiveType.String;}) | (NUMBER{parameterType = TsPrimitiveType.Number;})) (a=typeAnnotation))
+    {$result = new TsIndexSignature(n.Text, parameterType, a);}
+    ;
+
+methodSignature returns [TsTypeMember result]
+    @init { bool optional = false; }
+    :^(METH_SIG p=propertyName (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    // This is gross, but it works to reuse the callSignature rule
+    {$result = new TsMethodSignature(p, optional, typeParams, parameters, annotation);}
+    ;
+
+constructSignature returns [TsTypeMember result]
+    :^(CONST_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    // This is gross, but it works to reuse the callSignature rule
+    {$result = new TsConstructSignature(typeParams, parameters, annotation);}
     ;

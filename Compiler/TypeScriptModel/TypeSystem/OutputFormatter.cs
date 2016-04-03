@@ -5,7 +5,8 @@ using TypeScriptModel.Expressions;
 using TypeScriptModel.Statements;
 using TypeScriptModel.Visitors;
 
-namespace TypeScriptModel {
+namespace TypeScriptModel
+{
     using System;
     using System.Globalization;
     using System.Linq;
@@ -16,21 +17,29 @@ namespace TypeScriptModel {
     {
         private readonly bool _allowIntermediates;
 
-        private CodeBuilder _cb = new CodeBuilder();
+        private CodeBuilder _cb;
 
         private string _space = " ";
 
-        public OutputFormatter(bool allowIntermediates)
+        public OutputFormatter(bool allowIntermediates, bool inline = false)
         {
             _allowIntermediates = allowIntermediates;
+            _cb = new CodeBuilder(0, inline);
         }
 
-		public string Format(TsGlobals tsGlobals) {
-			foreach (var i in tsGlobals.Interfaces)
-				i.Accept(this, false);
-			foreach (var m in tsGlobals.Modules)
-				Format(m);
-		    return this._cb.ToString();
+        public string Format(TsGlobals tsGlobals)
+        {
+            foreach (var i in tsGlobals.Interfaces)
+            {
+                i.Accept(this, false);
+            }
+
+            foreach (var m in tsGlobals.Modules)
+            {
+                Format(m);
+            }
+
+            return this._cb.ToString();
         }
 
         public static string Format(TsType type, bool allowIntermediates = false)
@@ -67,10 +76,14 @@ namespace TypeScriptModel {
         public object VisitExpression(JsExpression expression, bool parenthesized)
         {
             if (parenthesized)
+            {
                 _cb.Append("(");
+            }
             expression.Accept(this, parenthesized);
             if (parenthesized)
+            {
                 _cb.Append(")");
+            }
             return null;
         }
 
@@ -86,84 +99,100 @@ namespace TypeScriptModel {
             }
         }
 
-		private void FormatGlobalMember(TsTypeMember typeMember, string prefix) {
-			if (!string.IsNullOrEmpty(prefix))
-				_cb.Append(prefix).Append(" ");
-			_cb.Append(typeMember is TsMethodSignature ? "function " : "var ");
-			typeMember.Accept(this, false);
-			_cb.AppendLine();
-		}
+        private void FormatGlobalMember(TsTypeMember typeMember, string prefix)
+        {
+            if (!string.IsNullOrEmpty(prefix))
+                _cb.Append(prefix).Append(" ");
+            _cb.Append(typeMember is TsMethodSignature ? "function " : "var ");
+            typeMember.Accept(this, false);
+            _cb.AppendLine();
+        }
 
-		public void Format(TsModule module) {
-			_cb.Append("declare module \"")
-			  .Append(module.Name)
-			  .AppendLine("\" {")
-			  .Indent();
+        public void Format(TsModule module)
+        {
+            _cb.Append("declare module \"")
+              .Append(module.Name)
+              .AppendLine("\" {")
+              .Indent();
 
-			foreach (var i in module.Imports) {
-				_cb.Append("import ")
-				  .Append(i.Alias)
-				  .Append(" = module(\"")
-				  .Append(i.Module)
-				  .AppendLine("\");");
-			}
+            foreach (var i in module.Imports)
+            {
+                _cb.Append("import ")
+                  .Append(i.Alias)
+                  .Append(" = module(\"")
+                  .Append(i.Module)
+                  .AppendLine("\");");
+            }
 
-			foreach (var i in module.ExportedInterfaces) {
-				_cb.Append("export ");
-				i.Accept(this, false);
-			}
+            foreach (var i in module.ExportedInterfaces)
+            {
+                _cb.Append("export ");
+                i.Accept(this, false);
+            }
 
-			foreach (var m in module.ExportedMembers) {
-				FormatGlobalMember(m, "export");
-			}
+            foreach (var m in module.ExportedMembers)
+            {
+                FormatGlobalMember(m, "export");
+            }
 
-			foreach (var i in module.Interfaces) {
-				i.Accept(this, false);
-			}
+            foreach (var i in module.Interfaces)
+            {
+                i.Accept(this, false);
+            }
 
-			foreach (var m in module.Members) {
-				FormatGlobalMember(m, null);
-			}
+            foreach (var m in module.Members)
+            {
+                FormatGlobalMember(m, null);
+            }
 
-			_cb.Outdent()
-			  .AppendLine("}");
-		}
+            _cb.Outdent()
+              .AppendLine("}");
+        }
 
-		private void FormatMemberList(IEnumerable<TsTypeMember> members) {
-            _cb.AppendLine("{")
-			  .Indent();
+        private void FormatMemberList(IEnumerable<TsTypeMember> members)
+        {
+            _cb.AppendLine("{").Indent();
             foreach (var m in members)
             {
                 m.Accept(this, false);
                 _cb.AppendLine();
-			}
-            _cb.Outdent()
-			  .Append("}");
-		}
+            }
+            _cb.Outdent().Append("}");
+        }
 
-		private void FormatParameter(TsParameter p) {
-			if (p.ParamArray)
+        private void FormatParameter(TsParameter p)
+        {
+            if (p.ParamArray)
                 _cb.Append("...");
             _cb.Append(p.Name);
-			if (p.Optional)
+            if (p.Optional)
                 _cb.Append("?");
-			if (p.Type != null) {
+            if (p.Type != null)
+            {
                 _cb.Append(": ");
                 p.Type.Accept(this, false);
-			}
-		}
+            }
+        }
 
-		private void FormatParameterList(IEnumerable<TsParameter> parameters) {
+        private void FormatParameterList(IEnumerable<TsParameter> parameters)
+        {
             _cb.Append("(");
-			bool first = true;
-			foreach (var p in parameters) {
-				if (!first)
-                    _cb.Append(", ");
-                FormatParameter(p);
-				first = false;
-			}
+            if (parameters != null)
+            {
+                bool first = true;
+                foreach (var p in parameters)
+                {
+                    if (!first)
+                    {
+                        _cb.Append(", ");
+                    }
+                    FormatParameter(p);
+                    first = false;
+                }
+            }
+
             _cb.Append(")");
-		}
+        }
 
         public object VisitArrayType(TsArrayType type, bool data)
         {
@@ -172,7 +201,7 @@ namespace TypeScriptModel {
             return null;
         }
 
-        public object VisitObjectType(TsObjectType type, bool data)
+        public object VisitObjectType(TsObjectType type, bool inline)
         {
             FormatMemberList(type.Members);
             return null;
@@ -180,6 +209,16 @@ namespace TypeScriptModel {
 
         public object VisitFunctionType(TsFunctionType type, bool data)
         {
+            FormatTypeParameters(type.TypeParameters);
+            FormatParameterList(type.Parameters);
+            _cb.Append(" => ");
+            type.ReturnType.Accept(this, false);
+            return null;
+        }
+
+        public object VisitConstructorType(TsConstructorType type, bool data)
+        {
+            _cb.Append("new ");
             FormatTypeParameters(type.TypeParameters);
             FormatParameterList(type.Parameters);
             _cb.Append(" => ");
@@ -207,7 +246,9 @@ namespace TypeScriptModel {
             if (typeParameter.Constraint != null)
             {
                 this._cb.Append(" extends ");
-                typeParameter.Constraint.Accept(this, false);
+                var inlineFormatter = new OutputFormatter(false, true);
+                typeParameter.Constraint.Accept(inlineFormatter, false);
+                this._cb.Append(inlineFormatter._cb.ToString());
             }
         }
 
@@ -230,7 +271,7 @@ namespace TypeScriptModel {
             return null;
         }
 
-        public object VisitInterfaceType(TsInterfaceType iface, bool data)
+        public object VisitInterfaceType(TsInterface iface, bool data)
         {
             _cb.Append("interface ").Append(iface.Name);
             for (int i = 0, n = iface.Extends.Count; i < n; i++)
@@ -283,12 +324,16 @@ namespace TypeScriptModel {
         public object VisitMethodSignature(TsMethodSignature methodSignature, bool data)
         {
             _cb.Append(methodSignature.Name);
+            if(methodSignature.Optional)
+            {
+                _cb.Append("?");
+            }
             FormatCallSignature(methodSignature);
             _cb.Append(";");
             return null;
         }
 
-        public object VisitConstructorSignature(TsConstructorSignature ctor, bool data)
+        public object VisitConstructSignature(TsConstructSignature ctor, bool data)
         {
             _cb.Append("new ");
             FormatCallSignature(ctor);
@@ -298,7 +343,10 @@ namespace TypeScriptModel {
 
         private void FormatCallSignature(IHasCallSignature item)
         {
-            FormatTypeParameters(item.TypeParameters);
+            if (item.TypeParameters != null)
+            {
+                FormatTypeParameters(item.TypeParameters);
+            }
             FormatParameterList(item.Parameters);
             if (item.ReturnType != null)
             {

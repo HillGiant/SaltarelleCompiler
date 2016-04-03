@@ -10,12 +10,15 @@ namespace TypeScriptModel.TypeSystem
 
         public bool ParamArray { get; private set; }
 
-        public TsParameter(string name, TsType type, bool optional, bool paramArray)
+        public AccessibilityModifier? Modifier {get; private set; }
+
+        public TsParameter(string name, TsType type, bool optional, bool paramArray, AccessibilityModifier? modifier)
         {
             Name = name;
             Type = type;
             Optional = optional;
             ParamArray = paramArray;
+            Modifier = modifier;
         }
     }
 }

@@ -7,6 +7,7 @@ namespace TypeScriptModel.TypeSystem
     public class TsMethodSignature : TsTypeMember, IHasCallSignature
     {
         public string Name { get; private set; }
+        public bool Optional { get; private set; }
 
         public TsType ReturnType { get; private set; }
 
@@ -16,13 +17,15 @@ namespace TypeScriptModel.TypeSystem
 
         public TsMethodSignature(
             string name,
-            IEnumerable<TsTypeParameter> typeParameters,
-            IEnumerable<TsParameter> parameters,
+            bool optional,
+            IList<TsTypeParameter> typeParameters,
+            IList<TsParameter> parameters,
             TsType returnType)
         {
             Name = name;
-            TypeParameters = new List<TsTypeParameter>(typeParameters).AsReadOnly();
-            Parameters = new List<TsParameter>(parameters).AsReadOnly();
+            Optional = optional;
+            TypeParameters = typeParameters;
+            Parameters = parameters;
             ReturnType = returnType;
         }
 

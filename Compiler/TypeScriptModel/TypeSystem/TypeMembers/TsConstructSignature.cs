@@ -3,7 +3,7 @@ using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.TypeSystem
 {
-    public class TsConstructorSignature : TsTypeMember, IHasCallSignature
+    public class TsConstructSignature : TsTypeMember, IHasCallSignature
     {
         public TsType ReturnType { get; private set; }
 
@@ -11,19 +11,19 @@ namespace TypeScriptModel.TypeSystem
 
         public IList<TsTypeParameter> TypeParameters { get; private set; }
 
-        public TsConstructorSignature(
-            TsType returnType,
-            IEnumerable<TsTypeParameter> typeParameters,
-            IEnumerable<TsParameter> parameters)
+        public TsConstructSignature(
+            IList<TsTypeParameter> typeParameters,
+            IList<TsParameter> parameters,
+            TsType returnType)
         {
             ReturnType = returnType;
-            Parameters = new List<TsParameter>(parameters).AsReadOnly();
-            TypeParameters = new List<TsTypeParameter>(typeParameters).AsReadOnly();
+            Parameters = parameters;
+            TypeParameters = typeParameters;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeMemberVisitor<TReturn, TData> visitor, TData data)
         {
-            return visitor.VisitConstructorSignature(this, data);
+            return visitor.VisitConstructSignature(this, data);
         }
     }
 }

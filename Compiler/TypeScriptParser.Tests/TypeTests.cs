@@ -119,7 +119,7 @@
         [Test]
         public void EmptyObject()
         {
-            var input = 
+            var input =
 @"{
 }";
             var type = ParseType<TsObjectType>(input);
@@ -191,6 +191,649 @@
             Assert.That(type.Members.Count, Is.EqualTo(2));
             Assert.That(type.Members[0], Is.TypeOf<TsPropertySignature>());
             Assert.That(type.Members[1], Is.TypeOf<TsPropertySignature>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ObjectWithCallSignature()
+        {
+            var input =
+@"{
+    ();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithParameterNoTypeArg()
+        {
+            var input =
+@"{
+    (foo);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.ReturnType, Is.Null);
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(callSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithReturnType()
+        {
+            var input =
+@"{
+    (foo): bar;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(callSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithParameter()
+        {
+            var input =
+@"{
+    (foo: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(callSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = callSig.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(callSig.Parameters[0].Optional, Is.False);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithOptionalParameter()
+        {
+            var input =
+@"{
+    (foo?: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(callSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(callSig.Parameters[0].Optional, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithRestParameter()
+        {
+            var input =
+@"{
+    (foo?: string, ...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(2));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(callSig.Parameters[1].Name, Is.EqualTo("bar"));
+            Assert.That(callSig.Parameters[1].Type, Is.Null);
+            Assert.That(callSig.Parameters[1].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithOnlyRestParameter()
+        {
+            var input =
+@"{
+    (...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(callSig.Parameters[0].Name, Is.EqualTo("bar"));
+            Assert.That(callSig.Parameters[0].Type, Is.Null);
+            Assert.That(callSig.Parameters[0].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithTypeParams()
+        {
+            var input =
+@"{
+    <T, U>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(callSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(callSig.TypeParameters[0].Constraint, Is.Null);
+            Assert.That(callSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(callSig.TypeParameters[1].Constraint, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void CallSignatureWithTypeParamsWithExtends()
+        {
+            var input =
+@"{
+    <T extends { a: string; b: number; }, U extends foo>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
+
+            var callSig = type.Members[0] as TsCallSignature;
+            Assert.That(callSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(callSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(callSig.TypeParameters[0].Constraint, Is.TypeOf<TsObjectType>());
+            Assert.That(callSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(callSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void IndexSignatureStringParameter()
+        {
+            var input =
+@"{
+    [foo: string]: typeRef;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsIndexSignature>());
+
+            var indexSig = type.Members[0] as TsIndexSignature;
+            Assert.That(indexSig.ParameterName, Is.EqualTo("foo"));
+            Assert.That(indexSig.ParameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(indexSig.ReturnType, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void IndexSignatureNumberParameter()
+        {
+            var input =
+@"{
+    [foo: number]: typeRef;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsIndexSignature>());
+
+            var indexSig = type.Members[0] as TsIndexSignature;
+            Assert.That(indexSig.ParameterName, Is.EqualTo("foo"));
+            Assert.That(indexSig.ParameterType.Primitive, Is.EqualTo(TsPrimitive.Number));
+            Assert.That(indexSig.ReturnType, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ObjectWithMethodSignature()
+        {
+            var input =
+@"{
+    bork();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithParameterNoTypeArg()
+        {
+            var input =
+@"{
+    bork(foo);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.ReturnType, Is.Null);
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+
+
+        [Test]
+        public void MethodSignatureWithReturnType()
+        {
+            var input =
+@"{
+    bork(foo): typeRef;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void OptionalMethodSignature()
+        {
+            var input =
+@"{
+    bork?(foo): typeRef;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.True);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithParameter()
+        {
+            var input =
+@"{
+    bork(foo: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = methodSig.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(methodSig.Parameters[0].Optional, Is.False);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithOptionalParameter()
+        {
+            var input =
+@"{
+    bork(foo?: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(methodSig.Parameters[0].Optional, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithRestParameter()
+        {
+            var input =
+@"{
+    bork(foo?: string, ...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(2));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(methodSig.Parameters[1].Name, Is.EqualTo("bar"));
+            Assert.That(methodSig.Parameters[1].Type, Is.Null);
+            Assert.That(methodSig.Parameters[1].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithOnlyRestParameter()
+        {
+            var input =
+@"{
+    bork(...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(methodSig.Parameters[0].Name, Is.EqualTo("bar"));
+            Assert.That(methodSig.Parameters[0].Type, Is.Null);
+            Assert.That(methodSig.Parameters[0].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithTypeParams()
+        {
+            var input =
+@"{
+    bork<T, U>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(methodSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(methodSig.TypeParameters[0].Constraint, Is.Null);
+            Assert.That(methodSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(methodSig.TypeParameters[1].Constraint, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void MethodSignatureWithTypeParamsWithExtends()
+        {
+            var input =
+@"{
+    bork<T extends { a: string; b: number; }, U extends foo>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
+
+            var methodSig = type.Members[0] as TsMethodSignature;
+            Assert.That(methodSig.Name, Is.EqualTo("bork"));
+            Assert.That(methodSig.Optional, Is.False);
+            Assert.That(methodSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(methodSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(methodSig.TypeParameters[0].Constraint, Is.TypeOf<TsObjectType>());
+            Assert.That(methodSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(methodSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+
+        [Test]
+        public void ObjectWithConstructSignature()
+        {
+            var input =
+@"{
+    new ();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithParameterNoTypeArg()
+        {
+            var input =
+@"{
+    new (foo);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.ReturnType, Is.Null);
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithReturnType()
+        {
+            var input =
+@"{
+    new (foo): bar;
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithParameter()
+        {
+            var input =
+@"{
+    new (foo: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = constSig.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(constSig.Parameters[0].Optional, Is.False);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithOptionalParameter()
+        {
+            var input =
+@"{
+    new (foo?: string);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(constSig.Parameters[0].Optional, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithRestParameter()
+        {
+            var input =
+@"{
+    new (foo?: string, ...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(2));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[1].Name, Is.EqualTo("bar"));
+            Assert.That(constSig.Parameters[1].Type, Is.Null);
+            Assert.That(constSig.Parameters[1].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithOnlyRestParameter()
+        {
+            var input =
+@"{
+    new (...bar);
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("bar"));
+            Assert.That(constSig.Parameters[0].Type, Is.Null);
+            Assert.That(constSig.Parameters[0].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithTypeParams()
+        {
+            var input =
+@"{
+    new <T, U>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(constSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(constSig.TypeParameters[0].Constraint, Is.Null);
+            Assert.That(constSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(constSig.TypeParameters[1].Constraint, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructSignatureWithTypeParamsWithExtends()
+        {
+            var input =
+@"{
+    new <T extends { a: string; b: number; }, U extends foo>();
+}";
+            var type = ParseType<TsObjectType>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
+
+            var constSig = type.Members[0] as TsConstructSignature;
+            Assert.That(constSig.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(constSig.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(constSig.TypeParameters[0].Constraint, Is.TypeOf<TsObjectType>());
+            Assert.That(constSig.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(constSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void EmptyObjectArray()
+        {
+            var input =
+@"{
+}[]";
+            var array = ParseType<TsArrayType>(input);
+            Assert.That(array.ElementType, Is.TypeOf<TsObjectType>());
+        }
+
+        [Test]
+        public void TypeRefArray()
+        {
+            var input =
+@"foo[]";
+            var array = ParseType<TsArrayType>(input);
+            Assert.That(array.ElementType, Is.TypeOf<TsTypeReference>());
+        }
+
+        [Test]
+        public void TypeRefDoubleArray()
+        {
+            var input =
+@"foo[][]";
+            var array = ParseType<TsArrayType>(input);
+            Assert.That(array.ElementType, Is.TypeOf<TsArrayType>());
+            Assert.That(((TsArrayType)array.ElementType).ElementType, Is.TypeOf<TsTypeReference>());
         }
     }
 }

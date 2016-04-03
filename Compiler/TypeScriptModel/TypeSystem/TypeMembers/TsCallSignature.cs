@@ -10,11 +10,11 @@ namespace TypeScriptModel.TypeSystem
         public IList<TsTypeParameter> TypeParameters { get; private set; }
         public IList<TsParameter> Parameters { get; private set; }
 
-        public TsCallSignature(IEnumerable<TsTypeParameter> typeParameters, IEnumerable<TsParameter> parameters, TsType returnType)
+        public TsCallSignature(IList<TsTypeParameter> typeParameters, IList<TsParameter> parameters, TsType returnType)
         {
             ReturnType = returnType;
-            Parameters = new List<TsParameter>(parameters).AsReadOnly();
-            TypeParameters = new List<TsTypeParameter>(typeParameters).AsReadOnly();
+            Parameters = parameters;
+            TypeParameters = typeParameters;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeMemberVisitor<TReturn, TData> visitor, TData data)

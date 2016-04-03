@@ -5,9 +5,9 @@ namespace TypeScriptModel.TypeSystem
     public class TsIndexSignature : TsTypeMember {
 		public TsType ReturnType { get; private set; }
 		public string ParameterName { get; private set; }
-		public TsType ParameterType { get; private set; }
+                public TsPrimitiveType ParameterType { get; private set; }
 
-		public TsIndexSignature(TsType returnType, string parameterName, TsType parameterType) {
+		public TsIndexSignature(string parameterName, TsPrimitiveType parameterType, TsType returnType) {
 			ReturnType    = returnType;
 			ParameterName = parameterName;
 			ParameterType = parameterType;

@@ -1340,7 +1340,7 @@ options
 // $<	Type Parameters (3.5.1)
 
 typeConstraint
-    : EXTENDS^ type
+    : EXTENDS type -> ^(EXTENDS type)
     ;
 
 typeParameters
@@ -1348,7 +1348,7 @@ typeParameters
     ;
 
 typeParameter
-    : Identifier^ typeConstraint?
+    : Identifier typeConstraint? -> ^(Identifier typeConstraint?)
     ;
     
 // $>
@@ -1364,7 +1364,7 @@ typeArguments
 
 // $<	Types (3.7)
 
-type
+public type
 options
 {
 	k = 4 ;
@@ -1398,12 +1398,16 @@ options
 	k = 4 ;
 	backtrack = true;
 }
-    : predefinedType
+    : (predefinedType
     | typeReference
     | objectType
     | tupleType
-    | typeQuery
-    (LBRACK RBRACK)*
+    | typeQuery)
+    arrayIndicator*
+    ;
+
+arrayIndicator
+    : (LBRACK RBRACK) -> ARRAY_TYPE
     ;
     
 // $<	Predefined Types (3.7.1)
@@ -1511,8 +1515,8 @@ callSignature
 // $<	3.8.2.2 Parameter List
 
 parameterList
-    : parameter ( COMMA parameter )* (COMMA restParameter)? -> ^(PARAMS parameter* restParameter)
-    | restParameter
+    : parameter ( COMMA parameter )* (COMMA restParameter)? -> ^(PARAMS parameter* restParameter?)
+    | restParameter -> ^(PARAMS restParameter)
     ;
 
 accessibilityModifier
@@ -1522,28 +1526,32 @@ accessibilityModifier
     ;
 
 parameter
-    : accessibilityModifier? Identifier QUE? typeAnnotation?( ASSIGN^ assignmentExpression )?
-    | Identifier COLON StringLiteral
+    : accessibilityModifier? Identifier QUE? typeAnnotation?( ASSIGN assignmentExpression )? -> ^(PARAM Identifier accessibilityModifier? QUE? typeAnnotation? assignmentExpression?)
     ;
 
 restParameter
-    : ELLIPSIS Identifier typeAnnotation?
+    : ELLIPSIS Identifier typeAnnotation? -> ^(ELLIPSIS Identifier typeAnnotation?)
     ;
 
 // $>
 
 // $<	3.8.3 Construct Signature
 constructSignature
-    : NEW typeParameters? LPAREN parameterList? RPAREN typeAnnotation?
+    : NEW typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(CONST_SIG typeParameters? parameterList? typeAnnotation?)
     ;
 // $>
 
 indexSignature
-    : LBRACE Identifier COLON (STRING | NUMBER) RBRACE typeAnnotation
+options
+{
+	k = 4 ;
+}
+    : LBRACK Identifier COLON STRING RBRACK typeAnnotation -> ^(INDEX_SIG Identifier STRING typeAnnotation)
+    | LBRACK Identifier COLON NUMBER RBRACK typeAnnotation -> ^(INDEX_SIG Identifier NUMBER typeAnnotation)
     ;
 
 methodSignature
-    : propertyName QUE? callSignature
+    : propertyName QUE? typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(METH_SIG propertyName QUE? typeParameters? parameterList? typeAnnotation?)
     ;
 
 // $<	3.9 Type Aliases
@@ -1614,14 +1622,14 @@ memberVariableDeclaration
 	;
 	
 memberFunctionDeclaration	
-	: /*membertFunctionOverload**/ membertFunctionImplementation
+	: /*memberFunctionOverload**/ memberFunctionImplementation
 	;
 	
-/*membertFunctionOverload
+/*memberFunctionOverload
 	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
 	;*/
 	
-membertFunctionImplementation
+memberFunctionImplementation
 	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN functionBody
 	;
 	

@@ -3,7 +3,7 @@ using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.TypeSystem
 {
-    public class TsInterfaceType : TsObjectType
+    public class TsInterface : TsObjectType
     {
         public string Name { get; private set; }
 
@@ -11,7 +11,7 @@ namespace TypeScriptModel.TypeSystem
 
         public IList<TsTypeParameter> TypeParameters { get; private set; }
 
-        public TsInterfaceType(
+        public TsInterface(
             string name,
             IEnumerable<TsTypeParameter> typeParameters,
             IEnumerable<TsTypeReference> extends,
