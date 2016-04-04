@@ -1,4 +1,5 @@
 using System;
+using TypeScriptModel.TypeSystem.Elements;
 using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.Statements

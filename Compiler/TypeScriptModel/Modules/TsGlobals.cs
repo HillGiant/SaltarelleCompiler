@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace TypeScriptModel.TypeSystem {
     using TypeScriptModel.Expressions;
+    using TypeScriptModel.Elements;
 
     public class TsGlobals {
         public IList<TsModule> Modules { get; private set; }

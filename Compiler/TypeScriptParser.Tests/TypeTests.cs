@@ -820,8 +820,7 @@
         [Test]
         public void TypeRefArray()
         {
-            var input =
-@"foo[]";
+            var input = @"foo[]";
             var array = ParseType<TsArrayType>(input);
             Assert.That(array.ElementType, Is.TypeOf<TsTypeReference>());
         }
@@ -829,11 +828,247 @@
         [Test]
         public void TypeRefDoubleArray()
         {
-            var input =
-@"foo[][]";
+            var input = @"foo[][]";
             var array = ParseType<TsArrayType>(input);
             Assert.That(array.ElementType, Is.TypeOf<TsArrayType>());
             Assert.That(((TsArrayType)array.ElementType).ElementType, Is.TypeOf<TsTypeReference>());
+        }
+
+        [Test]
+        public void FunctionType()
+        {
+            var input = @"() => foo";
+            var type = ParseType<TsFunctionType>(input);
+            Assert.That(type.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void FunctionTypeWithParameterNoTypeArg()
+        {
+            var input = @"(foo) => bar";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(funcType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(funcType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(funcType.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithParameter()
+        {
+            var input = @"(foo: string) => bar";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(funcType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(funcType.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = funcType.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(funcType.Parameters[0].Optional, Is.False);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithOptionalParameter()
+        {
+            var input = @"(foo?: string) => bar";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(funcType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(funcType.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(funcType.Parameters[0].Optional, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithRestParameter()
+        {
+            var input = @"(foo?: string, ...bar) => any";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.Parameters.Count, Is.EqualTo(2));
+            Assert.That(funcType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(funcType.Parameters[1].Name, Is.EqualTo("bar"));
+            Assert.That(funcType.Parameters[1].Type, Is.Null);
+            Assert.That(funcType.Parameters[1].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithOnlyRestParameter()
+        {
+            var input = @"(...bar) => any";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(funcType.Parameters[0].Name, Is.EqualTo("bar"));
+            Assert.That(funcType.Parameters[0].Type, Is.Null);
+            Assert.That(funcType.Parameters[0].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithTypeParams()
+        {
+            var input =
+@"<T, U>() => any";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(funcType.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(funcType.TypeParameters[0].Constraint, Is.Null);
+            Assert.That(funcType.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(funcType.TypeParameters[1].Constraint, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void FunctionTypeWithTypeParamsWithExtends()
+        {
+            var input = @"<T extends { a: string; b: number; }, U extends foo>() => any";
+            var funcType = ParseType<TsFunctionType>(input);
+            Assert.That(funcType.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(funcType.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(funcType.TypeParameters[0].Constraint, Is.TypeOf<TsObjectType>());
+            Assert.That(funcType.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(funcType.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, funcType));
+        }
+
+        [Test]
+        public void ConstructorType()
+        {
+            var input = @"new () => foo";
+            var type = ParseType<TsConstructorType>(input);
+            Assert.That(type.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(SerializedTypeMatchesInput(input, type));
+        }
+
+        [Test]
+        public void ConstructorTypeWithParameterNoTypeArg()
+        {
+            var input = @"new (foo) => bar";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.ReturnType, Is.TypeOf<TsTypeReference>());
+            Assert.That(constType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constType.Parameters[0].Type, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithParameter()
+        {
+            var input = @"new (foo: string) => bar";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constType.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = constType.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(constType.Parameters[0].Optional, Is.False);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithOptionalParameter()
+        {
+            var input = @"new (foo?: string) => bar";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constType.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(constType.Parameters[0].Optional, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithRestParameter()
+        {
+            var input = @"new (foo?: string, ...bar) => any";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.Parameters.Count, Is.EqualTo(2));
+            Assert.That(constType.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constType.Parameters[1].Name, Is.EqualTo("bar"));
+            Assert.That(constType.Parameters[1].Type, Is.Null);
+            Assert.That(constType.Parameters[1].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithOnlyRestParameter()
+        {
+            var input = @"new (...bar) => any";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constType.Parameters[0].Name, Is.EqualTo("bar"));
+            Assert.That(constType.Parameters[0].Type, Is.Null);
+            Assert.That(constType.Parameters[0].ParamArray, Is.True);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithTypeParams()
+        {
+            var input = @"new <T, U>() => any";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(constType.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(constType.TypeParameters[0].Constraint, Is.Null);
+            Assert.That(constType.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(constType.TypeParameters[1].Constraint, Is.Null);
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void ConstructorTypeWithTypeParamsWithExtends()
+        {
+            var input = @"new <T extends { a: string; b: number; }, U extends foo>() => any";
+            var constType = ParseType<TsConstructorType>(input);
+            Assert.That(constType.TypeParameters.Count, Is.EqualTo(2));
+            Assert.That(constType.TypeParameters[0].Name, Is.EqualTo("T"));
+            Assert.That(constType.TypeParameters[0].Constraint, Is.TypeOf<TsObjectType>());
+            Assert.That(constType.TypeParameters[1].Name, Is.EqualTo("U"));
+            Assert.That(constType.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
+
+            Assert.That(SerializedTypeMatchesInput(input, constType));
+        }
+
+        [Test]
+        public void TupleType()
+        {
+            var input = @"[string]";
+            var tupleType = ParseType<TsTupleType>(input);
+            Assert.That(tupleType.Types.Count, Is.EqualTo(1));
+            Assert.That(tupleType.Types[0], Is.TypeOf<TsPrimitiveType>());
+            Assert.That(((TsPrimitiveType)tupleType.Types[0]).Primitive, Is.EqualTo(TsPrimitive.String));
+
+            Assert.That(SerializedTypeMatchesInput(input, tupleType));
+        }
+
+        [Test]
+        public void TupleTypeMultipleTypes()
+        {
+            var input = @"[string, number]";
+            var tupleType = ParseType<TsTupleType>(input);
+            Assert.That(tupleType.Types.Count, Is.EqualTo(2));
+            Assert.That(tupleType.Types[0], Is.TypeOf<TsPrimitiveType>());
+            Assert.That(((TsPrimitiveType)tupleType.Types[0]).Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(tupleType.Types[1], Is.TypeOf<TsPrimitiveType>());
+            Assert.That(((TsPrimitiveType)tupleType.Types[1]).Primitive, Is.EqualTo(TsPrimitive.Number));
+
+            Assert.That(SerializedTypeMatchesInput(input, tupleType));
         }
     }
 }

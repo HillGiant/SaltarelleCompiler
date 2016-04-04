@@ -10,179 +10,182 @@ options
 tokens {
 
 // Reserved words
-	NULL		= 'null' ;
-	TRUE		= 'true' ;
-	FALSE		= 'false' ;
+    NULL		= 'null' ;
+    TRUE		= 'true' ;
+    FALSE		= 'false' ;
 
 // Keywords
-	BREAK		= 'break' ;
-	CASE		= 'case' ;
-	CATCH 		= 'catch' ;
-	CONTINUE 	= 'continue' ;
-	DEFAULT		= 'default' ;
-	DELETE		= 'delete' ;
-	DO 		= 'do' ;
-	ELSE 		= 'else' ;
-	FINALLY 	= 'finally' ;
-	FOR 		= 'for' ;
-	FUNCTION 	= 'function' ;
-	IF 		= 'if' ;
-	IN 		= 'in' ;
-	INSTANCEOF 	= 'instanceof' ;
-	NEW 		= 'new' ;
-	RETURN 		= 'return' ;
-	SWITCH 		= 'switch' ;
-	THIS 		= 'this' ;
-	THROW 		= 'throw' ;
-	TRY 		= 'try' ;
-	TYPE 		= 'type' ;
-	TYPEOF 		= 'typeof' ;
-	VAR 		= 'var' ;
-	VOID 		= 'void' ;
-	WHILE 		= 'while' ;
-	WITH 		= 'with' ;
+    BREAK		= 'break' ;
+    CASE		= 'case' ;
+    CATCH 		= 'catch' ;
+    CONTINUE 	        = 'continue' ;
+    DEFAULT		= 'default' ;
+    DELETE		= 'delete' ;
+    DO 		        = 'do' ;
+    ELSE 		= 'else' ;
+    FINALLY 	        = 'finally' ;
+    FOR 		= 'for' ;
+    FUNCTION 	        = 'function' ;
+    IF 		        = 'if' ;
+    IN 		        = 'in' ;
+    INSTANCEOF 	        = 'instanceof' ;
+    NEW 		= 'new' ;
+    RETURN 		= 'return' ;
+    SWITCH 		= 'switch' ;
+    THIS 		= 'this' ;
+    THROW 		= 'throw' ;
+    TRY 		= 'try' ;
+    TYPE 		= 'type' ;
+    TYPEOF 		= 'typeof' ;
+    VAR 		= 'var' ;
+    VOID 		= 'void' ;
+    WHILE 		= 'while' ;
+    WITH 		= 'with' ;
 
 // Typescript reserved words
-	ABSTRACT	= 'abstract' ;
-	CLASS 		= 'class' ;
-	DECLARE   	= 'declare';
-	INTERFACE 	= 'interface' ;
-	EXTENDS   	= 'extends';
-	MODULE    	= 'module';
-	EXPORT    	= 'export';
-	IMPORT    	= 'import';
-	PRIVATE 	= 'private' ;
-	PROTECTED 	= 'protected' ;
-	PUBLIC		= 'public' ;
-	CONSTRUCTOR 	= 'constructor' ;
-	GET 		= 'get' ;
-	SET 		= 'set' ;
-	REQUIRE		= 'require';
+    ABSTRACT	        = 'abstract' ;
+    CLASS 		= 'class' ;
+    DECLARE   	        = 'declare';
+    INTERFACE 	        = 'interface' ;
+    EXTENDS   	        = 'extends';
+    MODULE    	        = 'module';
+    EXPORT    	        = 'export';
+    IMPORT    	        = 'import';
+    PRIVATE 	        = 'private' ;
+    PROTECTED 	        = 'protected' ;
+    PUBLIC		= 'public' ;
+    CONSTRUCTOR 	= 'constructor' ;
+    GET 		= 'get' ;
+    SET 		= 'set' ;
+    REQUIRE		= 'require';
 
 // Typescript predefined types
-	ANY		= 'any' ;
-	NUMBER		= 'number' ;
-	BOOLEAN		= 'boolean' ;
-	STRING		= 'string' ;
-	VOID		= 'void' ;
+    ANY		        = 'any' ;
+    NUMBER		= 'number' ;
+    BOOLEAN		= 'boolean' ;
+    STRING		= 'string' ;
+    VOID		= 'void' ;
         
 // Future reserved words
-	BOOLEAN 	= 'boolean' ;
-	BYTE 		= 'byte' ;
-	CHAR 		= 'char' ;
-	CONST 		= 'const' ;
-	DOUBLE		= 'double' ;
-	ENUM 		= 'enum' ;
-	FINAL 		= 'final' ;
-	FLOAT 		= 'float' ;
-	GOTO 		= 'goto' ;
-	IMPLEMENTS 	= 'implements' ;
-	INT 		= 'int' ;
-	LONG 		= 'long' ;
-	NATIVE 		= 'native' ;
-	PACKAGE 	= 'package' ;
-	SHORT 		= 'short' ;
-	STATIC 		= 'static' ;
-	SUPER 		= 'super' ;
-	SYNCHRONIZED 	= 'synchronized' ;
-	THROWS 		= 'throws' ;
-	TRANSIENT 	= 'transient' ;
-	VOLATILE 	= 'volatile' ;
+    BOOLEAN 	        = 'boolean' ;
+    BYTE 		= 'byte' ;
+    CHAR 		= 'char' ;
+    CONST 		= 'const' ;
+    DOUBLE		= 'double' ;
+    ENUM 		= 'enum' ;
+    FINAL 		= 'final' ;
+    FLOAT 		= 'float' ;
+    GOTO 		= 'goto' ;
+    IMPLEMENTS 	        = 'implements' ;
+    INT 		= 'int' ;
+    LONG 		= 'long' ;
+    NATIVE 		= 'native' ;
+    PACKAGE 	        = 'package' ;
+    SHORT 		= 'short' ;
+    STATIC 		= 'static' ;
+    SUPER 		= 'super' ;
+    SYNCHRONIZED 	= 'synchronized' ;
+    THROWS 		= 'throws' ;
+    TRANSIENT 	        = 'transient' ;
+    VOLATILE 	        = 'volatile' ;
 
 // Made-up keywords
-	YIELD		= 'yield';
-	AWAIT       = 'await';
+    YIELD		= 'yield';
+    AWAIT               = 'await';
 
 // Punctuators
-	LBRACE		= '{' ;
-	RBRACE		= '}' ;
-	LPAREN		= '(' ;
-	RPAREN		= ')' ;
-	LBRACK		= '[' ;
-	RBRACK		= ']' ;
-	DOT		= '.' ;
-	SEMIC		= ';' ;
-	COMMA		= ',' ;
-	LT		= '<' ;
-	GT		= '>' ;
-	LTE		= '<=' ;
-	GTE		= '>=' ;
-	EQ		= '==' ;
-	NEQ		= '!=' ;
-	SAME		= '===' ;
-	NSAME		= '!==' ;
-	ADD		= '+' ;
-	SUB		= '-' ;
-	MUL		= '*' ;
-	MOD		= '%' ;
-	INC		= '++' ;
-	DEC		= '--' ;
-	SHL		= '<<' ;
-	SHR		= '>>' ;
-	SHU		= '>>>' ;
-	AND		= '&' ;
-	OR		= '|' ;
-	XOR		= '^' ;
-	NOT		= '!' ;
-	INV		= '~' ;
-	LAND		= '&&' ;
-	LOR		= '||' ;
-	QUE		= '?' ;
-	COLON		= ':' ;
-	ASSIGN		= '=' ;
-	ADDASS		= '+=' ;
-	SUBASS		= '-=' ;
-	MULASS		= '*=' ;
-	MODASS		= '%=' ;
-	SHLASS		= '<<=' ;
-	SHRASS		= '>>=' ;
-	SHUASS		= '>>>=' ;
-	ANDASS		= '&=' ;
-	ORASS		= '|=' ;
-	XORASS		= '^=' ;
-	DIV		= '/' ;
-	DIVASS		= '/=' ;
-	ELLIPSIS = '...';
-	ARROW = '=>';
+    LBRACE		= '{' ;
+    RBRACE		= '}' ;
+    LPAREN		= '(' ;
+    RPAREN		= ')' ;
+    LBRACK		= '[' ;
+    RBRACK		= ']' ;
+    DOT		        = '.' ;
+    SEMIC		= ';' ;
+    COMMA		= ',' ;
+    LT	                = '<' ;
+    GT		        = '>' ;
+    LTE		        = '<=' ;
+    GTE		        = '>=' ;
+    EQ		        = '==' ;
+    NEQ		        = '!=' ;
+    SAME		= '===' ;
+    NSAME		= '!==' ;
+    ADD		        = '+' ;
+    SUB		        = '-' ;
+    MUL		        = '*' ;
+    MOD		        = '%' ;
+    INC		        = '++' ;
+    DEC		        = '--' ;
+    SHL		        = '<<' ;
+    SHR		        = '>>' ;
+    SHU		        = '>>>' ;
+    AND		        = '&' ;
+    OR		        = '|' ;
+    XOR		        = '^' ;
+    NOT		        = '!' ;
+    INV		        = '~' ;
+    LAND		= '&&' ;
+    LOR		        = '||' ;
+    QUE		        = '?' ;
+    COLON		= ':' ;
+    ASSIGN		= '=' ;
+    ADDASS		= '+=' ;
+    SUBASS		= '-=' ;
+    MULASS		= '*=' ;
+    MODASS		= '%=' ;
+    SHLASS		= '<<=' ;
+    SHRASS		= '>>=' ;
+    SHUASS		= '>>>=' ;
+    ANDASS		= '&=' ;
+    ORASS		= '|=' ;
+    XORASS		= '^=' ;
+    DIV		        = '/' ;
+    DIVASS		= '/=' ;
+    ELLIPSIS            = '...';
+    ARROW               = '=>';
 
-	ARRAY_TYPE;
-	FUNCTION_TYPE;
-	PARAM;
-	PARAM_ARRAY;
-	PARAM_OPT;
-	PARAMS;
-	VAR_OPT;
-	CONSTRUCTOR;
-	INDEX;
-	OBJECT_TYPE;
-	ARGS ;
-	ARRAY ;
-	BLOCK ;
-	BYFIELD ;
-	BYINDEX ;
-	CALL ;
-	CEXPR ;
-	EXPR ;
-	FORITER ;
-	FORSTEP ;
-	ITEM ;
-	LABELLED ;
-	NAMEDVALUE ;
-	NEG ;
-	OBJECT ;
-	PAREXPR ;
-	PDEC ;
-	PINC ;
-	POS ;
+    ARRAY_TYPE;
+    FUNCTION_TYPE;
+    PARAM;
+    PARAM_ARRAY;
+    PARAM_OPT;
+    PARAMS;
+    VAR_OPT;
+    CONSTRUCTOR;
+    INDEX;
+    OBJECT_TYPE;
+    ARGS ;
+    ARRAY ;
+    BLOCK ;
+    BYFIELD ;
+    BYINDEX ;
+    CALL ;
+    CEXPR ;
+    EXPR ;
+    FORITER ;
+    FORSTEP ;
+    ITEM ;
+    LABELLED ;
+    NAMEDVALUE ;
+    NEG ;
+    OBJECT ;
+    PAREXPR ;
+    PDEC ;
+    PINC ;
+    POS ;
     TYPE_PARAMS;
     TYPE_ARGS;
-	FUNCTIONDECLARATION ;
+    FUNCTIONDECLARATION ;
     TYPEREF;
     PROP_SIG;
     CALL_SIG;
     CONST_SIG;
     INDEX_SIG;
     METH_SIG;
+    FUNC_TYPE;
+    CONST_TYPE;
+    TUPLE_TYPE;
 }
 
 @lexer::namespace { TypeScriptParser.TypeScriptParserImpl }
@@ -1329,6 +1332,7 @@ options
 }
 	: { input.LA(1) == FUNCTION }? functionDeclaration
 	| statement
+        | interfaceDeclaration
 	;
 
 // $>
@@ -1457,7 +1461,7 @@ typeMember
 
 // Limit to non-tuple types for LL parser friendlyness
 tupleType
-    : LBRACK nonTupleType (COMMA type)* RBRACK
+    : LBRACK nonTupleType (COMMA type)* RBRACK -> ^(TUPLE_TYPE nonTupleType type*)
     ;
 
 // $>
@@ -1473,7 +1477,7 @@ unionType
 // $<	3.7.7 Function Type Literals
 
 functionType
-    : typeParameters? LPAREN parameterList RPAREN ARROW type
+    : typeParameters? LPAREN parameterList? RPAREN ARROW type -> ^(FUNC_TYPE typeParameters? parameterList? type?)
     ;
 
 // $>
@@ -1481,7 +1485,7 @@ functionType
 // $<	3.7.8 Constructor Type Literals
 
 constructorType
-    : NEW typeParameters? LPAREN parameterList RPAREN ARROW type
+    : NEW typeParameters? LPAREN parameterList? RPAREN ARROW type -> ^(CONST_TYPE typeParameters? parameterList? type?)
     ;
 
 // $>
@@ -1570,7 +1574,7 @@ typeAnnotation
 // $<	5 Interfaces
 
 interfaceDeclaration
-	: INTERFACE Identifier typeParameters? extendsClause? objectType
+	: INTERFACE Identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(INTERFACE Identifier typeParameters? extendsClause? typeMember*)
 	;
 	
 extendsClause
@@ -1739,90 +1743,3 @@ ambientModuleElement
 // $>
 
 // $>
-
-
-
-
-
-/*
-ident
-	: ( x=Identifier
-	  | x=INTERFACE
-	  | x=EXTENDS
-	  | x=MODULE
-	  | x=EXPORT
-	  | x=IMPORT
-	  ) { $x.Type = Identifier; }
-	;
-
-nestedIdentifier
-	@init { string result = ""; }
-	: x=ident { result = $x.text; } ( DOT { result += '.'; } y=ident { result += $y.text; } )* -> Identifier[null, result]
-	;
-
-variableDeclaration
-	@init { bool export = false; }
-	: (DECLARE | EXPORT { export = true; } )? VAR ident (COLON type)? SEMIC? -> { export }? ^(EXPORT ident type?)
-	                                                                         ->             ^(DECLARE[null, "DECLARE"] ident type?)
-	;
-
-functionDeclaration
-	@init { bool export = false; }
-	: (DECLARE | EXPORT { export = true; })? FUNCTION ident parameterList (COLON type)? SEMIC? -> { export }? ^(EXPORT ident parameterList type?)
-	                                                                                           ->             ^(DECLARE[null, "DECLARE"] ident parameterList type?)
-	;
-
-interfaceDeclaration
-	@init { bool export = false; }
-	: (EXPORT { export = true; })? INTERFACE ident extendsDeclaration? compositeType SEMIC? -> { export }? ^(EXPORT ^(INTERFACE ident extendsDeclaration? compositeType))
-	                                                                                        ->             ^(DECLARE ^(INTERFACE ident extendsDeclaration? compositeType))
-	;
-
-extendsDeclaration
-	: EXTENDS^ nestedIdentifier (COMMA! nestedIdentifier)*
-	;
-
-moduleDeclaration
-	: DECLARE! MODULE^ Identifier LBRACE! declaration* RBRACE! SEMIC!?
-	;
-
-importDeclaration
-	: IMPORT^ Identifier ASSIGN! MODULE! LPAREN! Identifier RPAREN! SEMIC!?
-	;
-
-parameterList
-	: LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)* RPAREN -> ^(PARAMS parameterDeclaration*)
-	;
-
-parameterDeclaration
-	: ident (COLON type)? -> ^(PARAM ident type?)
-	| ident QUE (COLON type)? -> ^(PARAM_OPT ident type?)
-	| ELLIPSIS ident (COLON type)? -> ^(PARAM_ARRAY ident type?)
-	;
-
-public type
-	: ( nestedIdentifier
-	  | compositeType
-	  | functionType
-	  ) (x=LBRACK^ { $x.Type = ARRAY_TYPE; } RBRACK!)*
-	;
-
-compositeType
-	: LBRACE member* RBRACE -> ^(COMPOSITE_TYPE member*)
-	;
-
-member
-	: NEW parameterList (COLON type)? SEMIC? -> ^(CONSTRUCTOR parameterList type?)
-	| LBRACK parameterDeclaration RBRACK (COLON type)? SEMIC? -> ^(INDEX parameterDeclaration type?)
-	| ((ident l=parameterList) | ident | l=parameterList) (COLON type)? SEMIC? -> { l != null }? ^(FUNCTION ident? $l type?)
-	                                                                           ->                ^(VAR ident type?)
-	| ident QUE (COLON type)? SEMIC? -> ^(VAR_OPT ident type?)
-	;
-
-functionType
-	: parameterList ARROW type -> ^(FUNCTION_TYPE parameterList type?)
-	;
-
-
-
-// $>*/

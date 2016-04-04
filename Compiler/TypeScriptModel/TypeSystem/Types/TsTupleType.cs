@@ -7,9 +7,9 @@ namespace TypeScriptModel.TypeSystem
     {
         public IList<TsType> Types { get; private set; }
 
-        public TsTupleType(IEnumerable<TsType> types)
+        public TsTupleType(IList<TsType> types)
         {
-            Types = new List<TsType>(types).AsReadOnly();
+            Types = types;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeVisitor<TReturn, TData> visitor, TData data)

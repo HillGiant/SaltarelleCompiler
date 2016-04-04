@@ -10,10 +10,10 @@ namespace TypeScriptModel.TypeSystem
         public IList<TsParameter> Parameters { get; private set; }
         public TsType ReturnType { get; private set; }
 
-        public TsConstructorType(IEnumerable<TsTypeParameter> typeParameters, IEnumerable<TsParameter> parameters, TsType returnType)
+        public TsConstructorType(IList<TsTypeParameter> typeParameters, IList<TsParameter> parameters, TsType returnType)
         {
-            TypeParameters = new List<TsTypeParameter>(typeParameters).AsReadOnly();
-            Parameters = new List<TsParameter>(parameters).AsReadOnly();
+            TypeParameters = typeParameters;
+            Parameters = parameters;
             ReturnType = returnType;
         }
 

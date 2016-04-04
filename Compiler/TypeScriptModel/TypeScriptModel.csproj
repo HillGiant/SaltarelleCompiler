@@ -48,6 +48,7 @@
       <Link>Properties\CompilerVersion.cs</Link>
     </Compile>
     <Compile Include="CodeBuilder.cs" />
+    <Compile Include="Elements\TsStatementElement.cs" />
     <Compile Include="Expressions\JsArrayLiteralExpression.cs" />
     <Compile Include="Expressions\JsBinaryExpression.cs" />
     <Compile Include="Expressions\JsCommaExpression.cs" />
@@ -92,6 +93,12 @@
     <Compile Include="Statements\JsWithStatement.cs" />
     <Compile Include="Statements\JsYieldStatement.cs" />
     <Compile Include="TypeSystem\AccessibilityModifier.cs" />
+    <Compile Include="Elements\TsAmbient.cs" />
+    <Compile Include="Elements\TsClass.cs" />
+    <Compile Include="Elements\TsEnum.cs" />
+    <Compile Include="Elements\TsNamespace.cs" />
+    <Compile Include="Elements\TsSourceElement.cs" />
+    <Compile Include="Elements\TsTypeAlias.cs" />
     <Compile Include="TypeSystem\IHasCallSignature.cs" />
     <Compile Include="TypeSystem\Parameters\TsTypeParameter.cs" />
     <Compile Include="TypeSystem\Types\TsArrayType.cs" />
@@ -107,7 +114,7 @@
     <Compile Include="TypeSystem\Types\TsFunctionType.cs" />
     <Compile Include="Modules\TsGlobals.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsIndexSignature.cs" />
-    <Compile Include="TypeSystem\Classes\TsInterface.cs" />
+    <Compile Include="Elements\TsInterface.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsTypeMember.cs" />
     <Compile Include="Modules\TsModule.cs" />
     <Compile Include="Modules\TsModuleImport.cs" />
@@ -117,6 +124,7 @@
     <Compile Include="TypeSystem\TypeMembers\TsPropertySignature.cs" />
     <Compile Include="TypeSystem\Types\TsTypeReference.cs" />
     <Compile Include="Visitors\IExpressionVisitor.cs" />
+    <Compile Include="Visitors\ISourceElementVisitor.cs" />
     <Compile Include="Visitors\ITypeMemberVisitor.cs" />
     <Compile Include="Visitors\IStatementVisitor.cs" />
     <Compile Include="Visitors\ITypeVisitor.cs" />

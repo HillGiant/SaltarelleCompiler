@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using TypeScriptModel.TypeSystem;
+using TypeScriptModel.Elements;
 using TypescriptMode.Model;
 using TypeScriptModel.Expressions;
 using TypeScriptModel.Statements;
@@ -13,7 +14,7 @@ namespace TypeScriptModel
 
     using TypeScriptModel.ExtensionMethods;
 
-    public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>
+    public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>, ISourceElementVisitor<object, bool>
     {
         private readonly bool _allowIntermediates;
 
@@ -63,12 +64,12 @@ namespace TypeScriptModel
             return fmt._cb.ToString();
         }
 
-        public static string Format(IList<JsStatement> statements, bool allowIntermediates = false)
+        public static string Format(IList<TsSourceElement> elements, bool allowIntermediates = false)
         {
             var fmt = new OutputFormatter(allowIntermediates);
-            foreach (var statement in statements)
+            foreach (var element in elements)
             {
-                fmt.VisitStatement(statement, true);
+                fmt.VisitElement(element, true);
             }
             return fmt._cb.ToString();
         }
@@ -209,7 +210,10 @@ namespace TypeScriptModel
 
         public object VisitFunctionType(TsFunctionType type, bool data)
         {
-            FormatTypeParameters(type.TypeParameters);
+            if (type.TypeParameters != null)
+            {
+                FormatTypeParameters(type.TypeParameters);
+            }
             FormatParameterList(type.Parameters);
             _cb.Append(" => ");
             type.ReturnType.Accept(this, false);
@@ -219,7 +223,10 @@ namespace TypeScriptModel
         public object VisitConstructorType(TsConstructorType type, bool data)
         {
             _cb.Append("new ");
-            FormatTypeParameters(type.TypeParameters);
+            if (type.TypeParameters != null)
+            {
+                FormatTypeParameters(type.TypeParameters);
+            }
             FormatParameterList(type.Parameters);
             _cb.Append(" => ");
             type.ReturnType.Accept(this, false);
@@ -271,7 +278,7 @@ namespace TypeScriptModel
             return null;
         }
 
-        public object VisitInterfaceType(TsInterface iface, bool data)
+        public object VisitInterface(TsInterface iface, bool data)
         {
             _cb.Append("interface ").Append(iface.Name);
             for (int i = 0, n = iface.Extends.Count; i < n; i++)
@@ -282,6 +289,11 @@ namespace TypeScriptModel
             FormatMemberList(iface.Members);
             _cb.AppendLine();
             return null;
+        }
+
+        public object VisitStatementElement(TsStatementElement s, bool data)
+        {
+            return s.Statement.Accept(this, data);
         }
 
         public object VisitPrimitiveType(TsPrimitiveType tsPrimitiveType, bool data)
@@ -316,9 +328,22 @@ namespace TypeScriptModel
             throw new NotImplementedException();
         }
 
-        public object VisitTupleType(TsTupleType tsTupleType, bool data)
+        public object VisitTupleType(TsTupleType tuple, bool data)
         {
-            throw new NotImplementedException();
+            _cb.Append("[");
+            bool first = true;
+            foreach (var t in tuple.Types)
+            {
+                if (!first)
+                {
+                    _cb.Append(", ");
+                }
+                t.Accept(this, data);
+                first = false;
+            }
+
+            _cb.Append("]");
+            return null;
         }
 
         public object VisitMethodSignature(TsMethodSignature methodSignature, bool data)
@@ -816,6 +841,11 @@ namespace TypeScriptModel
                 default:
                     throw new ArgumentException("nodeType");
             }
+        }
+
+        public object VisitElement(TsSourceElement element, bool addNewline)
+        {
+            return element.Accept(this, addNewline);
         }
 
         public object VisitStatement(JsStatement statement, bool addNewline)

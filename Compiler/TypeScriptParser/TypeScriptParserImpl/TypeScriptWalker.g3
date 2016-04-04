@@ -14,6 +14,7 @@ using System;
 using TypeScriptModel.TypeSystem;
 using TypeScriptModel.Expressions;
 using TypeScriptModel.Statements;
+using TypeScriptModel.Elements;
 using System.Globalization;
 }
 
@@ -108,10 +109,21 @@ using System.Globalization;
 	}
 }
 
-public program returns [IList<JsStatement> result]
-@init { $result = new List<JsStatement>(); }
-	: (s = statement { $result.Add(s); })*
+public program returns [IList<TsSourceElement> result]
+@init { $result = new List<TsSourceElement>(); }
+	: (s = sourceElement { $result.Add(s); })*
 	;
+
+public sourceElement returns [TsSourceElement result]
+	: (e = statementElement)
+        //| (e = interface)
+        { $result = e; }
+        ;
+
+public statementElement returns [TsSourceElement result]
+    : s = statement
+    { $result = new TsStatementElement(s); }
+    ;
 
 public statement returns [JsStatement result]
 	: (x=block
@@ -397,7 +409,10 @@ propertyName returns [ string result ]
 public type returns [TsType result]
     : (( t=typeReference )
     |  ( t=primitiveType )
-    |  ( t=objectType ))
+    |  ( t=objectType )
+    |  ( t=constructorType )
+    |  ( t=functionType )
+    |  ( t=tupleType ))
     (ARRAY_TYPE {t= new TsArrayType(t);})*
 	{ $result = t; }
 	;
@@ -510,4 +525,20 @@ constructSignature returns [TsTypeMember result]
     :^(CONST_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
     // This is gross, but it works to reuse the callSignature rule
     {$result = new TsConstructSignature(typeParams, parameters, annotation);}
+    ;
+
+functionType returns [TsType result]
+    : ^(FUNC_TYPE (typeParams = typeParameters)? (parameters = parameterList)? (t = type)?)
+    { $result = new TsFunctionType(typeParams, parameters, t); }
+    ;
+
+constructorType returns [TsType result]
+    : ^(CONST_TYPE (typeParams = typeParameters)? (parameters = parameterList)? (t = type)?)
+    { $result = new TsConstructorType(typeParams, parameters, t); }
+    ;
+
+tupleType returns [TsType result]
+    @init { List<TsType> types = new List<TsType>(); }
+    : ^(TUPLE_TYPE (t = type {types.Add(t);})*)
+    { $result = new TsTupleType(types); }
     ;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TypeScriptModel.Elements;
 
 namespace TypeScriptModel.TypeSystem {
 	public class TsModule {

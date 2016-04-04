@@ -1,4 +1,5 @@
 ﻿using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Elements;
 
 namespace TypeScriptModel.Visitors
 {
@@ -11,8 +12,6 @@ namespace TypeScriptModel.Visitors
         TReturn VisitFunctionType(TsFunctionType type, TData data);
 
         TReturn VisitTypeReference(TsTypeReference type, TData data);
-
-        TReturn VisitInterfaceType(TsInterface type, TData data);
 
         TReturn VisitPrimitiveType(TsPrimitiveType tsPrimitiveType, TData data);
 
