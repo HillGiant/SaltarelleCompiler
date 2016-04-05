@@ -1320,7 +1320,7 @@ public program
 	: sourceElement*
 	;
 
-/*
+;
 By setting k  to 1 for this rule and adding the semantical predicate ANTRL will generate code that will always prefer functionDeclararion over functionExpression
 here and therefor remove the ambiguity between these to production.
 This will result in the same behaviour that is described in the specification under 12.4 on the expressionStatement rule.
@@ -1332,7 +1332,11 @@ options
 }
 	: { input.LA(1) == FUNCTION }? functionDeclaration
 	| statement
-        | interfaceDeclaration
+    | interfaceDeclaration
+    | classDeclaration
+    | moduleDeclaration
+    | importDeclaration
+    | enumDeclaration
 	;
 
 // $>
@@ -1578,7 +1582,7 @@ interfaceDeclaration
 	;
 	
 extendsClause
-	: EXTENDS Identifier (COMMA Identifier)*
+	: EXTENDS typeReference (COMMA typeReference)* -> ^(EXTENDS typeReference*)
 	;
 
 // $>
@@ -1610,15 +1614,11 @@ options
 	;
 		
 constructorDeclaration
-	: /*constructorOverload* */constructorImplementation
+	: constructorCallSignature (semic constructorCallSignature)* functionBody
 	;
 	
-/*constructorOverload
-	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN SEMIC
-	;*/
-	
-constructorImplementation	
-	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN functionBody
+constructorCallSignature
+	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN
 	;
 	
 memberVariableDeclaration
@@ -1626,15 +1626,11 @@ memberVariableDeclaration
 	;
 	
 memberFunctionDeclaration	
-	: /*memberFunctionOverload**/ memberFunctionImplementation
+	: memberFunctionCallSignature (semic memberFunctionCallSignature)* functionBody
 	;
 	
-/*memberFunctionOverload
-	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN SEMIC
-	;*/
-	
-memberFunctionImplementation
-	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN functionBody
+memberFunctionCallSignature
+	: accessibilityModifier? STATIC? Identifier LPAREN parameterList RPAREN
 	;
 	
 memberAccessorDeclaration
@@ -1654,7 +1650,7 @@ setAccessor
 
 
 // $<   7 Enums
-/*enumDeclaration	
+enumDeclaration	
 	: CONST? ENUM Identifier LBRACE enumBody RBRACE
 	;
 	
@@ -1664,82 +1660,48 @@ enumBody
 
 enumMember
 	: Identifier( ASSIGN^ assignmentExpression )?
-	;*/
+	;
 
 // $>
 
 // $<   8 Internal Modules
 
-/*moduleDeclaration
-	: MODULE qName moduleBody
+moduleDeclaration
+	: MODULE qName LBRACE (sourceElement (COMMA sourceElement)*)? RBRACE
 	;
 	
-moduleBody	
-    : LBRACE (moduleElement COMMA)* moduleElement? RBRACE
-	;*/
-	
-moduleElement
-	: /*statement
-	|*/ variableDeclaration
-	//| functionDeclaration
-	| classDeclaration
-	| interfaceDeclaration
-	| typeAliasDeclaration
-	//| enumDeclaration
-	//| moduleDeclaration
-	| importDeclaration
-	//| ambientDeclaration
-	;
-    
 importDeclaration
 	: IMPORT Identifier ASSIGN qName
 	;
 
-// $>
+exportDeclaration
+    : EXPORT exportableElement
+    ;
 
-// $<   9 Source Files and External Modules
+exportableElement
+    : interfaceDeclaration
+    | classDeclaration
+    | moduleDeclaration
+    | importDeclaration
+    | enumDeclaration
+    ;
 
-sourceFile	
-	: implementationSourceFile
-	;
-	
-implementationSourceFile
-	: implementationElement *
+ambientDeclaration
+    : EXPORT ambientElement
+    ;
+
+ambientElement
+    : interfaceDeclaration
+    | ambientClassDeclaration
+    | moduleDeclaration
+    | importDeclaration
+    | enumDeclaration
+    ;
+
+ambientClassDeclaration
+	: CLASS Identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(CLASS Identifier typeParameters? extendsClause? typeMember*)
 	;
 
-implementationElement
-	: moduleElement
-	/*| exportAssignment
-	| ambientExportModuleDeclaration
-	| EXPORT? externalImportDeclaration*/
-	;
-	
-externalImportDeclaration
-	: IMPORT Identifier ASSIGN REQUIRE LPAREN StringLiteral RPAREN
-	;
-	
-exportAssignment
-	: EXPORT ASSIGN Identifier
-	;
-	
-/*ambientExportModuleDeclaration
-	: DECLARE MODULE StringLiteral ambientExportModuleBody
-	;
-	
-	
-ambientExportModuleBody
-	: ambientExternalModuleElement *
-	;
-	
-ambientExternalModuleElement
-	: ambientModuleElement
-	| exportAssignment
-	| EXPORT ? externalImportDeclaration
-	;
-	
-ambientModuleElement
-	:	
-	;*/
 // $>
 
 // $>

@@ -10,13 +10,6 @@
     [TestFixture]
     public class TypeTests
     {
-        private class ThrowingErrorReporter : IErrorReporter
-        {
-            public void ReportError(int line, int col, string message)
-            {
-                throw new Exception(string.Format("Error at {0},{1}: {2}", line, col, message));
-            }
-        }
 
         private T ParseType<T>(string source) where T : TsType
         {

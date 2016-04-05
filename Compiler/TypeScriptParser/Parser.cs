@@ -54,5 +54,18 @@ namespace TypeScriptParser {
             var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
             return tree.type();
         }
+
+        public static TsSourceElement ParseSourceElement(string source, IErrorReporter errorReporter)
+        {
+            var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source)) { ErrorReporter = errorReporter };
+            CommonTokenStream tokens = new CommonTokenStream(lex);
+            var parser = new TypeScriptParserImpl.TypeScriptParser(tokens) { ErrorReporter = errorReporter };
+
+            var r = parser.sourceElement();
+            if (r.Tree == null)
+                return null;
+            var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
+            return tree.sourceElement();
+        }
 	}
 }

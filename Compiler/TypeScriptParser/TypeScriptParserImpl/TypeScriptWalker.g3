@@ -116,9 +116,9 @@ public program returns [IList<TsSourceElement> result]
 
 public sourceElement returns [TsSourceElement result]
 	: (e = statementElement)
-        //| (e = interface)
-        { $result = e; }
-        ;
+    | (e = interfaceElement)
+    { $result = e; }
+    ;
 
 public statementElement returns [TsSourceElement result]
     : s = statement
@@ -541,4 +541,16 @@ tupleType returns [TsType result]
     @init { List<TsType> types = new List<TsType>(); }
     : ^(TUPLE_TYPE (t = type {types.Add(t);})*)
     { $result = new TsTupleType(types); }
+    ;
+
+interfaceElement returns [TsSourceElement result]
+    @init { var members = new List<TsTypeMember>(); }
+    : ^(INTERFACE i=Identifier p=typeParameters? e=extendsClause? (m=typeMember { members.Add(m); })*)
+    { $result = new TsInterface(i.Text, p, e, members); }
+    ;
+
+extendsClause returns [List<TsTypeReference> result]
+    @init { var refs = new List<TsTypeReference>(); }
+    : ^(EXTENDS (t = typeReference{refs.Add((TsTypeReference)t);})*)
+    { $result = refs; }
     ;

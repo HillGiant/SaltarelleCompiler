@@ -43,6 +43,13 @@ namespace TypeScriptModel
             return this._cb.ToString();
         }
 
+        public static string Format(TsSourceElement element, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates);
+            element.Accept(fmt, false);
+            return fmt._cb.ToString();
+        }
+
         public static string Format(TsType type, bool allowIntermediates = false)
         {
             var fmt = new OutputFormatter(allowIntermediates);
@@ -269,7 +276,9 @@ namespace TypeScriptModel
                 foreach (var arg in type.TypeArgs)
                 {
                     if (!first)
+                    {
                         _cb.Append(", ");
+                    }
                     arg.Accept(this, data);
                     first = false;
                 }
@@ -281,9 +290,20 @@ namespace TypeScriptModel
         public object VisitInterface(TsInterface iface, bool data)
         {
             _cb.Append("interface ").Append(iface.Name);
-            for (int i = 0, n = iface.Extends.Count; i < n; i++)
+            this.FormatTypeParameters(iface.TypeParameters);
+            if (iface.Extends != null)
             {
-                _cb.Append(i == 0 ? " extends " : ", ").Append(iface.Extends[i].Name);
+                _cb.Append(" extends ");
+                bool first = true;
+                foreach (var extend in iface.Extends)
+                {
+                    if (!first)
+                    {
+                        _cb.Append(", ");
+                    }
+                    extend.Accept(this, data);
+                    first = false;
+                }
             }
             _cb.Append(" ");
             FormatMemberList(iface.Members);
