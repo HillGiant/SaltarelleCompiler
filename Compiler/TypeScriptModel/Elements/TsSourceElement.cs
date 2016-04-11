@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using TypeScriptModel.Visitors;
 
-
 namespace TypeScriptModel.Elements
 {
     public interface TsSourceElement

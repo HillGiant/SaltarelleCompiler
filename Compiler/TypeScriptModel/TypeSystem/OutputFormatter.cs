@@ -12,9 +12,11 @@ namespace TypeScriptModel
     using System.Globalization;
     using System.Linq;
 
+    using TypeScriptModel.Elements.ClassMembers;
     using TypeScriptModel.ExtensionMethods;
+    using TypeScriptModel.TypeSystem.Elements;
 
-    public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>, ISourceElementVisitor<object, bool>
+    public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>, ISourceElementVisitor<object, bool>, IClassMemberVisitor<object, bool>
     {
         private readonly bool _allowIntermediates;
 
@@ -157,7 +159,18 @@ namespace TypeScriptModel
               .AppendLine("}");
         }
 
-        private void FormatMemberList(IEnumerable<TsTypeMember> members)
+        private void FormatTypeMemberList(IEnumerable<TsTypeMember> members)
+        {
+            _cb.AppendLine("{").Indent();
+            foreach (var m in members)
+            {
+                m.Accept(this, false);
+                _cb.AppendLine();
+            }
+            _cb.Outdent().Append("}");
+        }
+
+        private void FormatClassMemberList(IEnumerable<TsClassMember> members)
         {
             _cb.AppendLine("{").Indent();
             foreach (var m in members)
@@ -211,7 +224,7 @@ namespace TypeScriptModel
 
         public object VisitObjectType(TsObjectType type, bool inline)
         {
-            FormatMemberList(type.Members);
+            this.FormatTypeMemberList(type.Members);
             return null;
         }
 
@@ -306,7 +319,7 @@ namespace TypeScriptModel
                 }
             }
             _cb.Append(" ");
-            FormatMemberList(iface.Members);
+            this.FormatTypeMemberList(iface.Members);
             _cb.AppendLine();
             return null;
         }
@@ -314,6 +327,30 @@ namespace TypeScriptModel
         public object VisitStatementElement(TsStatementElement s, bool data)
         {
             return s.Statement.Accept(this, data);
+        }
+
+        public object VisitClass(TsClass tsClass, bool data)
+        {
+            _cb.Append("class ").Append(tsClass.Name);
+            this.FormatTypeParameters(tsClass.TypeParameters);
+            if (tsClass.Extends != null)
+            {
+                _cb.Append(" extends ");
+                bool first = true;
+                foreach (var extend in tsClass.Extends)
+                {
+                    if (!first)
+                    {
+                        _cb.Append(", ");
+                    }
+                    extend.Accept(this, data);
+                    first = false;
+                }
+            }
+            _cb.Append(" ");
+            FormatClassMemberList(tsClass.Members);
+            _cb.AppendLine();
+            return null;
         }
 
         public object VisitPrimitiveType(TsPrimitiveType tsPrimitiveType, bool data)
@@ -1149,10 +1186,14 @@ namespace TypeScriptModel
         public object VisitGotoStatement(JsGotoStatement statement, bool addNewline)
         {
             if (!_allowIntermediates)
+            {
                 throw new NotSupportedException("goto should not occur in the output stage");
+            }
             _cb.Append("goto ").Append(statement.TargetLabel).Append(";");
             if (addNewline)
+            {
                 _cb.AppendLine();
+            }
             return null;
         }
 
@@ -1171,19 +1212,40 @@ namespace TypeScriptModel
                 _cb.Append("yield break;");
             }
             if (addNewline)
+            {
                 _cb.AppendLine();
+            }
             return null;
         }
 
         public object VisitAwaitStatement(JsAwaitStatement statement, bool addNewline)
         {
             if (!_allowIntermediates)
+            {
                 throw new NotSupportedException("await should not occur in the output stage");
+            }
             _cb.Append("await ");
             VisitExpression(statement.Awaiter, false);
             _cb.Append(":" + statement.OnCompletedMethodName + ";");
             if (addNewline)
+            {
                 _cb.AppendLine();
+            }
+            return null;
+        }
+
+        public object VisitConstructorDeclaration(TsConstructorDeclaration tsConstructorDeclaration, bool data)
+        {
+            TsCallSignature last = tsConstructorDeclaration.Signatures.Last();
+            foreach (var signature in tsConstructorDeclaration.Signatures)
+            {
+                signature.Accept(this, data);
+                if (signature != last)
+                {
+                    this._cb.AppendLine(";");
+                }
+            }
+            tsConstructorDeclaration.Body.Accept(this, data);
             return null;
         }
     }

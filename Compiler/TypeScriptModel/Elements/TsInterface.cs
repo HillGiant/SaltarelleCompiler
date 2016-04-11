@@ -25,6 +25,7 @@ namespace TypeScriptModel.Elements
             Members = members;
 
         }
+
         public TReturn Accept<TReturn, TData>(ISourceElementVisitor<TReturn, TData> visitor, TData data)
         {
             return visitor.VisitInterface(this, data);

@@ -48,6 +48,8 @@
       <Link>Properties\CompilerVersion.cs</Link>
     </Compile>
     <Compile Include="CodeBuilder.cs" />
+    <Compile Include="Elements\ClassMembers\TsClassMember.cs" />
+    <Compile Include="Elements\ClassMembers\TsConstructorDeclaration.cs" />
     <Compile Include="Elements\TsStatementElement.cs" />
     <Compile Include="Expressions\JsArrayLiteralExpression.cs" />
     <Compile Include="Expressions\JsBinaryExpression.cs" />
@@ -123,6 +125,7 @@
     <Compile Include="TypeSystem\Types\TsType.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsPropertySignature.cs" />
     <Compile Include="TypeSystem\Types\TsTypeReference.cs" />
+    <Compile Include="Visitors\IClassMemberVisitor.cs" />
     <Compile Include="Visitors\IExpressionVisitor.cs" />
     <Compile Include="Visitors\ISourceElementVisitor.cs" />
     <Compile Include="Visitors\ITypeMemberVisitor.cs" />

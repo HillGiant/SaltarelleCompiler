@@ -1320,7 +1320,7 @@ public program
 	: sourceElement*
 	;
 
-;
+/*
 By setting k  to 1 for this rule and adding the semantical predicate ANTRL will generate code that will always prefer functionDeclararion over functionExpression
 here and therefor remove the ambiguity between these to production.
 This will result in the same behaviour that is described in the specification under 12.4 on the expressionStatement rule.
