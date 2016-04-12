@@ -6,18 +6,21 @@ using TypeScriptModel.TypeSystem;
 using TypeScriptModel.Elements;
 using TypeScriptModel.Expressions;
 
-namespace TypeScriptParser {
+namespace TypeScriptParser
+{
 
-    public static class Parser {
-		public static JsExpression ParseExpression(string source) {
+    public static class Parser
+    {
+        public static JsExpression ParseExpression(string source)
+        {
             var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source));
-   			CommonTokenStream tokens = new CommonTokenStream(lex);
+            CommonTokenStream tokens = new CommonTokenStream(lex);
             var parser = new TypeScriptParserImpl.TypeScriptParser(tokens);
 
-			var r = parser.expression();
+            var r = parser.expression();
             var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree));
-			return tree.expression();
-		}
+            return tree.expression();
+        }
 
         public static JsStatement ParseStatement(string source)
         {
@@ -30,17 +33,18 @@ namespace TypeScriptParser {
             return tree.statement();
         }
 
-        public static IList<TsSourceElement> Parse(string source, IErrorReporter errorReporter) {
-			var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source)) { ErrorReporter = errorReporter };
-			CommonTokenStream tokens = new CommonTokenStream(lex);
-			var parser = new TypeScriptParserImpl.TypeScriptParser(tokens) { ErrorReporter = errorReporter };
+        public static IList<TsSourceElement> Parse(string source, IErrorReporter errorReporter)
+        {
+            var lex = new TypeScriptParserImpl.TypeScriptLexer(new ANTLRStringStream(source)) { ErrorReporter = errorReporter };
+            CommonTokenStream tokens = new CommonTokenStream(lex);
+            var parser = new TypeScriptParserImpl.TypeScriptParser(tokens) { ErrorReporter = errorReporter };
 
-			var r = parser.program();
-			if (r.Tree == null)
-                            return new List<TsSourceElement>();//new TsGlobals(new TsModule[0], new TsInterface[0], null);
-			var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
-			return tree.program();
-		}
+            var r = parser.program();
+            if (r.Tree == null)
+                return new List<TsSourceElement>();//new TsGlobals(new TsModule[0], new TsInterface[0], null);
+            var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
+            return tree.program();
+        }
 
         public static TsType ParseType(string source, IErrorReporter errorReporter)
         {
@@ -67,5 +71,5 @@ namespace TypeScriptParser {
             var tree = new TypeScriptParserImpl.TypeScriptWalker(new CommonTreeNodeStream(r.Tree)) { ErrorReporter = errorReporter };
             return tree.sourceElement();
         }
-	}
+    }
 }

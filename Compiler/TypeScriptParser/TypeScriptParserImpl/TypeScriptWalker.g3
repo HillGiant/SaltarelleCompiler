@@ -14,7 +14,9 @@ using System;
 using TypeScriptModel.TypeSystem;
 using TypeScriptModel.Expressions;
 using TypeScriptModel.Statements;
+using TypeScriptModel.TypeSystem.Elements;
 using TypeScriptModel.Elements;
+using TypeScriptModel.Elements.ClassMembers;
 using System.Globalization;
 }
 
@@ -115,8 +117,9 @@ public program returns [IList<TsSourceElement> result]
 	;
 
 public sourceElement returns [TsSourceElement result]
-	: (e = statementElement)
+    : ((e = statementElement)
     | (e = interfaceElement)
+    | (e = classElement))
     { $result = e; }
     ;
 
@@ -553,4 +556,26 @@ extendsClause returns [List<TsTypeReference> result]
     @init { var refs = new List<TsTypeReference>(); }
     : ^(EXTENDS (t = typeReference{refs.Add((TsTypeReference)t);})*)
     { $result = refs; }
+    ;
+
+classElement returns [TsSourceElement result]
+    @init { var members = new List<TsClassMember>(); }
+    : ^(CLASS (i=Identifier) (p=typeParameters)? (e=extendsClause)? ((m=classMember) { members.Add(m); })*)
+    { $result = new TsClass(i.Text, p, e, members); }
+    ;
+
+classMember returns [TsClassMember result]
+    : ((m = constructorDeclaration))
+    { $result = m; }
+    ;
+
+constructorDeclaration returns [TsClassMember result]
+    @init { var signatures = new List<TsClassConstructorSignature>(); }
+    : ^(CONST_DECL (s = constructorCallSignature { signatures.Add(s);})* (f = block))
+    { $result = new TsConstructorDeclaration(signatures, f);}
+    ;
+
+constructorCallSignature returns [TsClassConstructorSignature result]
+    : ^(CONST_SIG (a=accessibilityModifier)? (parameters = parameterList)?)
+    { $result = new TsClassConstructorSignature(a, parameters);}
     ;

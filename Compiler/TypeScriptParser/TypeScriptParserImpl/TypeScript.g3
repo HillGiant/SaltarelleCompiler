@@ -152,7 +152,6 @@ tokens {
     PARAM_OPT;
     PARAMS;
     VAR_OPT;
-    CONSTRUCTOR;
     INDEX;
     OBJECT_TYPE;
     ARGS ;
@@ -186,6 +185,7 @@ tokens {
     FUNC_TYPE;
     CONST_TYPE;
     TUPLE_TYPE;
+    CONST_DECL;
 }
 
 @lexer::namespace { TypeScriptParser.TypeScriptParserImpl }
@@ -1590,15 +1590,11 @@ extendsClause
 // $<   6 Classes
 
 classDeclaration
-	: CLASS Identifier typeParameters? extendsClause? implementsClause? LBRACE classBody RBRACE
+	: CLASS Identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS Identifier typeParameters? extendsClause? classElement*)
 	;
 	
 implementsClause	
 	: IMPLEMENTS Identifier (COMMA Identifier)*
-	;
-
-classBody
-	: classElement*
 	;
 	
 classElement
@@ -1614,11 +1610,11 @@ options
 	;
 		
 constructorDeclaration
-	: constructorCallSignature (semic constructorCallSignature)* functionBody
+	: constructorCallSignature (semic constructorCallSignature)* functionBody -> ^(CONST_DECL constructorCallSignature* functionBody)
 	;
 	
 constructorCallSignature
-	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN
+	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList RPAREN -> ^(CONST_SIG accessibilityModifier? parameterList?)
 	;
 	
 memberVariableDeclaration

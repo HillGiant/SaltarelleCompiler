@@ -8,10 +8,10 @@ namespace TypeScriptModel.Elements.ClassMembers
 
     public class TsConstructorDeclaration: TsClassMember
     {
-        public List<TsCallSignature> Signatures { get; private set; }
-        public JsBlockStatement Body { get; private set; }
+        public IList<TsClassConstructorSignature> Signatures { get; private set; }
+        public JsStatement Body { get; private set; }
 
-        public TsConstructorDeclaration(List<TsCallSignature> signatures, JsBlockStatement body)
+        public TsConstructorDeclaration(IList<TsClassConstructorSignature> signatures, JsStatement body)
         {
             Signatures = signatures;
             Body = body;

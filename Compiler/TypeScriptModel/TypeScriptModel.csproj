@@ -48,6 +48,7 @@
       <Link>Properties\CompilerVersion.cs</Link>
     </Compile>
     <Compile Include="CodeBuilder.cs" />
+    <Compile Include="Elements\ClassMembers\TsClassConstructorSignature.cs" />
     <Compile Include="Elements\ClassMembers\TsClassMember.cs" />
     <Compile Include="Elements\ClassMembers\TsConstructorDeclaration.cs" />
     <Compile Include="Elements\TsStatementElement.cs" />
@@ -114,12 +115,12 @@
     <Compile Include="TypeSystem\Parameters\TsParameter.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsMethodSignature.cs" />
     <Compile Include="TypeSystem\Types\TsFunctionType.cs" />
-    <Compile Include="Modules\TsGlobals.cs" />
+    <Compile Include="Expressions\Modules\TsGlobals.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsIndexSignature.cs" />
     <Compile Include="Elements\TsInterface.cs" />
     <Compile Include="TypeSystem\TypeMembers\TsTypeMember.cs" />
-    <Compile Include="Modules\TsModule.cs" />
-    <Compile Include="Modules\TsModuleImport.cs" />
+    <Compile Include="Expressions\Modules\TsModule.cs" />
+    <Compile Include="Expressions\Modules\TsModuleImport.cs" />
     <Compile Include="TypeSystem\OutputFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeSystem\Types\TsType.cs" />

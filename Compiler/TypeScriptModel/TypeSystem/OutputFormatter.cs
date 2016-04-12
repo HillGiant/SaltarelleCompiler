@@ -303,7 +303,10 @@ namespace TypeScriptModel
         public object VisitInterface(TsInterface iface, bool data)
         {
             _cb.Append("interface ").Append(iface.Name);
-            this.FormatTypeParameters(iface.TypeParameters);
+            if (iface.TypeParameters != null)
+            {
+                FormatTypeParameters(iface.TypeParameters);
+            }
             if (iface.Extends != null)
             {
                 _cb.Append(" extends ");
@@ -332,7 +335,10 @@ namespace TypeScriptModel
         public object VisitClass(TsClass tsClass, bool data)
         {
             _cb.Append("class ").Append(tsClass.Name);
-            this.FormatTypeParameters(tsClass.TypeParameters);
+            if (tsClass.TypeParameters != null)
+            {
+                FormatTypeParameters(tsClass.TypeParameters);
+            }
             if (tsClass.Extends != null)
             {
                 _cb.Append(" extends ");
@@ -1236,7 +1242,7 @@ namespace TypeScriptModel
 
         public object VisitConstructorDeclaration(TsConstructorDeclaration tsConstructorDeclaration, bool data)
         {
-            TsCallSignature last = tsConstructorDeclaration.Signatures.Last();
+            TsClassConstructorSignature last = tsConstructorDeclaration.Signatures.Last();
             foreach (var signature in tsConstructorDeclaration.Signatures)
             {
                 signature.Accept(this, data);
@@ -1246,6 +1252,12 @@ namespace TypeScriptModel
                 }
             }
             tsConstructorDeclaration.Body.Accept(this, data);
+            return null;
+        }
+
+
+        public object VisitClassConstructorSignature(TsClassConstructorSignature tsClassConstructorSignature, bool data)
+        {
             return null;
         }
     }
