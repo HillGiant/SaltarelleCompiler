@@ -11,5 +11,11 @@ namespace TypeScriptModel.Visitors
         TReturn VisitStatementElement(TsStatementElement statement, TData data);
 
         TReturn VisitClass(TsClass tsClass, TData data);
+
+        TReturn VisitModule(TypeSystem.TsModule tsModule, TData data);
+
+        TReturn VisitExport(TsExportElement tsExportElement, TData data);
+
+        TReturn VisitAmbientDeclaration(TsAmbientDeclaration tsAmbientDeclaration, TData data);
     }
 }

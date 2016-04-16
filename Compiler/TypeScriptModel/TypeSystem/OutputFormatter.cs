@@ -30,21 +30,6 @@ namespace TypeScriptModel
             _cb = new CodeBuilder(0, inline);
         }
 
-        public string Format(TsGlobals tsGlobals)
-        {
-            foreach (var i in tsGlobals.Interfaces)
-            {
-                i.Accept(this, false);
-            }
-
-            foreach (var m in tsGlobals.Modules)
-            {
-                Format(m);
-            }
-
-            return this._cb.ToString();
-        }
-
         public static string Format(TsSourceElement element, bool allowIntermediates = false)
         {
             var fmt = new OutputFormatter(allowIntermediates);
@@ -116,47 +101,6 @@ namespace TypeScriptModel
             _cb.Append(typeMember is TsMethodSignature ? "function " : "var ");
             typeMember.Accept(this, false);
             _cb.AppendLine();
-        }
-
-        public void Format(TsModule module)
-        {
-            _cb.Append("declare module \"")
-              .Append(module.Name)
-              .AppendLine("\" {")
-              .Indent();
-
-            foreach (var i in module.Imports)
-            {
-                _cb.Append("import ")
-                  .Append(i.Alias)
-                  .Append(" = module(\"")
-                  .Append(i.Module)
-                  .AppendLine("\");");
-            }
-
-            foreach (var i in module.ExportedInterfaces)
-            {
-                _cb.Append("export ");
-                i.Accept(this, false);
-            }
-
-            foreach (var m in module.ExportedMembers)
-            {
-                FormatGlobalMember(m, "export");
-            }
-
-            foreach (var i in module.Interfaces)
-            {
-                i.Accept(this, false);
-            }
-
-            foreach (var m in module.Members)
-            {
-                FormatGlobalMember(m, null);
-            }
-
-            _cb.Outdent()
-              .AppendLine("}");
         }
 
         private void FormatTypeMemberList(IEnumerable<TsTypeMember> members)
@@ -356,6 +300,33 @@ namespace TypeScriptModel
             _cb.Append(" ");
             FormatClassMemberList(tsClass.Members);
             _cb.AppendLine();
+            return null;
+        }
+
+        public object VisitModule(TsModule tsModule, bool data)
+        {
+            _cb.Append("module \"").Append(tsModule.Name).Append("\"");
+            _cb.AppendLine("{").Indent();
+            foreach (var e in tsModule.Elements)
+            {
+                e.Accept(this, false);
+                _cb.AppendLine();
+            }
+            _cb.Outdent().Append("}");
+            return null;
+        }
+
+        public object VisitExport(TsExportElement tsExportElement, bool data)
+        {
+            _cb.Append("export ");
+            tsExportElement.Exported.Accept(this, data);
+            return null;
+        }
+
+        public object VisitAmbientDeclaration(TsAmbientDeclaration tsAmbientDeclaration, bool data)
+        {
+            _cb.Append("declare ");
+            tsAmbientDeclaration.Declared.Accept(this, data);
             return null;
         }
 
@@ -597,6 +568,12 @@ namespace TypeScriptModel
                 first = false;
             }
             _cb.Append(")" + _space);
+
+            if (expression.Type != null)
+            {
+                _cb.Append(": ");
+                expression.Type.Accept(this, false);
+            }
             VisitStatement(expression.Body, false);
 
             return null;
@@ -1136,6 +1113,13 @@ namespace TypeScriptModel
                 if (!first)
                     _cb.Append("," + _space);
                 _cb.Append(d.Name);
+
+                if (d.Type != null)
+                {
+                    _cb.Append(":" + _space);
+                    d.Type.Accept(this, addNewline);
+                }
+
                 if (d.Initializer != null)
                 {
                     _cb.Append(_space + "=" + _space);
@@ -1185,6 +1169,12 @@ namespace TypeScriptModel
                 _cb.Append(statement.ParameterNames[i]);
             }
             _cb.Append(")" + _space);
+
+            if (statement.Type != null)
+            {
+                _cb.Append(": ");
+                statement.Type.Accept(this, false);
+            }
             VisitStatement(statement.Body, addNewline);
             return null;
         }
@@ -1255,10 +1245,112 @@ namespace TypeScriptModel
             return null;
         }
 
-
         public object VisitClassConstructorSignature(TsClassConstructorSignature tsClassConstructorSignature, bool data)
         {
+            if (tsClassConstructorSignature.Accessibility != null)
+            {
+                this._cb.Append(FormatAccessibility(tsClassConstructorSignature.Accessibility));
+            }
+            this._cb.Append("constructor");
+            this.FormatParameterList(tsClassConstructorSignature.Parameters);
             return null;
+        }
+
+        public object VisitMethodDeclaration(TsMethodDeclaration tsMethodDeclaration, bool data)
+        {
+            TsClassMethodSignature last = tsMethodDeclaration.Signatures.Last();
+            foreach (var signature in tsMethodDeclaration.Signatures)
+            {
+                signature.Accept(this, data);
+                if (signature != last)
+                {
+                    this._cb.AppendLine(";");
+                }
+            }
+            tsMethodDeclaration.Body.Accept(this, data);
+            return null;
+        }
+
+        public object VisitClassMethodSignature(TsClassMethodSignature tsClassMethodSignature, bool data)
+        {
+            if (tsClassMethodSignature.Accessibility != null)
+            {
+                this._cb.Append(FormatAccessibility(tsClassMethodSignature.Accessibility));
+            }
+            if (tsClassMethodSignature.IsStatic)
+            {
+                this._cb.Append("static ");
+            }
+            _cb.Append(tsClassMethodSignature.Name);
+            FormatCallSignature(tsClassMethodSignature);
+            return null;
+        }
+
+        public object VisitClassIndexSignature(TsClassIndexSignature tsClassIndexSignaure, bool data)
+        {
+            return tsClassIndexSignaure.Signature.Accept(this, data);
+        }
+
+        public object VisitClassSetAccessor(TsClassSetAccessor tsClassSetAccessor, bool data)
+        {
+            if (tsClassSetAccessor.Accessibility != null)
+            {
+                this._cb.Append(FormatAccessibility(tsClassSetAccessor.Accessibility));
+            }
+            if (tsClassSetAccessor.IsStatic)
+            {
+                this._cb.Append("static ");
+            }
+            this._cb.Append("set ");
+            this._cb.Append(tsClassSetAccessor.Name);
+            FormatParameterList(new List<TsParameter>{tsClassSetAccessor.Parameter});
+            if (tsClassSetAccessor.TypeAnnotation != null)
+            {
+                _cb.Append(": ");
+                tsClassSetAccessor.TypeAnnotation.Accept(this, false);
+            }
+            tsClassSetAccessor.Body.Accept(this, data);
+            return null;
+        }
+
+        public object VisitClassGetAccessor(TsClassGetAccessor tsClassGetAccessor, bool data)
+        {
+            if (tsClassGetAccessor.Accessibility != null)
+            {
+                this._cb.Append(FormatAccessibility(tsClassGetAccessor.Accessibility));
+            }
+            if (tsClassGetAccessor.IsStatic)
+            {
+                this._cb.Append("static ");
+            }
+            this._cb.Append("get ");
+            this._cb.Append(tsClassGetAccessor.Name);
+            this._cb.Append("()");
+            if (tsClassGetAccessor.TypeAnnotation != null)
+            {
+                _cb.Append(": ");
+                tsClassGetAccessor.TypeAnnotation.Accept(this, false);
+            }
+            tsClassGetAccessor.Body.Accept(this, data);
+            return null;
+        }
+
+        public string FormatAccessibility(AccessibilityModifier? m)
+        {
+            if (m != null)
+            {
+                switch (m)
+                {
+                    case AccessibilityModifier.Public:
+                        return "public ";
+                    case AccessibilityModifier.Private:
+                        return "private ";
+                    case AccessibilityModifier.Protected:
+                        return "protected ";
+                }
+            }
+            
+            return string.Empty;
         }
     }
 }

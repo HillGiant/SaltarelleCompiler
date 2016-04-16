@@ -121,7 +121,7 @@
         }
 
         [Test]
-        public void ObjectWithParameter()
+        public void ObjectWithProperty()
         {
             var input =
 @"{
@@ -138,7 +138,7 @@
         }
 
         [Test]
-        public void ObjectWithOptionalParameter()
+        public void ObjectWithOptionalProperty()
         {
             var input =
 @"{
@@ -155,7 +155,7 @@
         }
 
         [Test]
-        public void ObjectWithParameterWithTypeAnnotation()
+        public void ObjectWithPropertyWithTypeAnnotation()
         {
             var input =
 @"{
@@ -173,7 +173,7 @@
         }
 
         [Test]
-        public void ObjectWithMultipleParameters()
+        public void ObjectWithMultipleProperties()
         {
             var input =
 @"{

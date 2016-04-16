@@ -119,7 +119,10 @@ public program returns [IList<TsSourceElement> result]
 public sourceElement returns [TsSourceElement result]
     : ((e = statementElement)
     | (e = interfaceElement)
-    | (e = classElement))
+    | (e = classElement)
+    | (e = moduleElement)
+    | (e = exportDeclaration)
+    | (e = ambientDeclaration))
     { $result = e; }
     ;
 
@@ -160,7 +163,8 @@ block returns [JsStatement result]
 
 variableDeclaration returns [JsStatement result]
 @init { var vars = new List<JsVariableDeclaration>(); }
-	: ^( VAR ( i=Identifier { vars.Add(new JsVariableDeclaration(i.Text, null)); } | ^( ASSIGN i=Identifier x=expr { vars.Add(new JsVariableDeclaration(i.Text, x)); } ) )+ ) { $result = new JsVariableDeclarationStatement(vars); }
+	: ^( VAR ((i=Identifier a=typeAnnotation? (ASSIGN e=expression)?) { vars.Add(new JsVariableDeclaration(i.Text, e, a)); })+)
+    { $result = new JsVariableDeclarationStatement(vars); }
 	;
 
 ifStatement returns [JsStatement result]
@@ -346,12 +350,12 @@ leftHandSideExpression returns [JsExpression result]
 
 functionExpression returns [JsExpression result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTION i=Identifier? ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) b=block ) { $result = JsExpression.FunctionDefinition(parms, b, i != null ? i.Text : null); }
+	: ^( FUNCTION i=Identifier? ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) (a=typeAnnotation)? b=block ) { $result = JsExpression.FunctionDefinition(parms, b, i != null ? i.Text : null, a); }
 	;
 
 functionDeclaration returns [JsStatement result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTIONDECLARATION i=Identifier ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) b=block ) { $result = new JsFunctionStatement(i.Text, parms, b); }
+	: ^( FUNCTIONDECLARATION i=Identifier ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) (a=typeAnnotation)? b=block ) { $result = new JsFunctionStatement(i.Text, parms, b, a); }
 	;
 
 callExpression returns [JsExpression result]
@@ -520,13 +524,11 @@ indexSignature returns [TsTypeMember result]
 methodSignature returns [TsTypeMember result]
     @init { bool optional = false; }
     :^(METH_SIG p=propertyName (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
-    // This is gross, but it works to reuse the callSignature rule
     {$result = new TsMethodSignature(p, optional, typeParams, parameters, annotation);}
     ;
 
 constructSignature returns [TsTypeMember result]
     :^(CONST_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
-    // This is gross, but it works to reuse the callSignature rule
     {$result = new TsConstructSignature(typeParams, parameters, annotation);}
     ;
 
@@ -565,7 +567,11 @@ classElement returns [TsSourceElement result]
     ;
 
 classMember returns [TsClassMember result]
-    : ((m = constructorDeclaration))
+    : ((m = constructorDeclaration)
+    |  (m =methodDeclaration)
+    |  (m =classIndexSignature)
+    |  (m =getAccessor)
+    |  (m =setAccessor))
     { $result = m; }
     ;
 
@@ -576,6 +582,53 @@ constructorDeclaration returns [TsClassMember result]
     ;
 
 constructorCallSignature returns [TsClassConstructorSignature result]
-    : ^(CONST_SIG (a=accessibilityModifier)? (parameters = parameterList)?)
-    { $result = new TsClassConstructorSignature(a, parameters);}
+    @init { AccessibilityModifier? accessibility = null; }
+    : ^(CONST_SIG (a=accessibilityModifier {accessibility = a;})? (parameters = parameterList)?)
+    { $result = new TsClassConstructorSignature(accessibility, parameters);}
     ;
+
+methodDeclaration returns [TsClassMember result]
+    @init { var signatures = new List<TsClassMethodSignature>(); }
+    : ^(METH_DECL (s = methodCallSignature { signatures.Add(s);})* (f = block))
+    { $result = new TsMethodDeclaration(signatures, f);}
+    ;
+
+methodCallSignature returns [TsClassMethodSignature result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(METH_SIG (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    { $result = new TsClassMethodSignature(accessibility, s, i.Text, parameters, typeParams, annotation);}
+    ;
+
+classIndexSignature returns [TsClassMember result]
+    : ((s = indexSignature))
+    { $result = new TsClassIndexSignature((TsIndexSignature)s);}
+    ;
+
+getAccessor returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(GET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassGetAccessor(accessibility, s, i.Text, annotation, f); }
+    ;
+
+setAccessor returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(SET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (p = parameter) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassSetAccessor(accessibility, s, i.Text, p, annotation, f); }
+    ;
+
+moduleElement returns [TsSourceElement result]
+    @init { var elements = new List<TsSourceElement>(); }
+    : ^(MODULE (i=StringLiteral) (e = sourceElement {elements.Add(e);})*)
+    { $result = new TsModule($StringLiteral.Text.Substring(1, $StringLiteral.Text.Length - 2), elements); }
+    ;
+
+exportDeclaration returns [TsSourceElement result]
+    : ^(EXPORT  (e = sourceElement))
+    { $result = new TsExportElement(e); }
+    ;
+
+ambientDeclaration returns [TsSourceElement result]
+    : ^(DECLARE  (e = sourceElement))
+    { $result = new TsAmbientDeclaration(e); }
+    ;
+

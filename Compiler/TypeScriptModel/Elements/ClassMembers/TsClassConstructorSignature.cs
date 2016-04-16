@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using TypeScriptModel.TypeSystem;
 using TypeScriptModel.Visitors;
 
@@ -9,10 +6,10 @@ namespace TypeScriptModel.Elements.ClassMembers
 {
     public class TsClassConstructorSignature
     {
-        AccessibilityModifier Accessibility; 
-        IList<TsParameter> Parameters;
+        public AccessibilityModifier? Accessibility;
+        public IList<TsParameter> Parameters;
 
-        public TsClassConstructorSignature(AccessibilityModifier accessibility, IList<TsParameter> parameters)
+        public TsClassConstructorSignature(AccessibilityModifier? accessibility, IList<TsParameter> parameters)
         {
             Accessibility = accessibility;
             Parameters = parameters;

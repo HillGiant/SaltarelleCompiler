@@ -5,6 +5,7 @@ using TypeScriptModel.Statements;
 using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.Expressions {
+    using TypeScriptModel.TypeSystem;
 
     public enum ExpressionNodeType {
         ArrayLiteral,
@@ -297,8 +298,8 @@ namespace TypeScriptModel.Expressions {
         public static JsConstantExpression True { get { return JsConstantExpression.True; } }
         public static JsConstantExpression False { get { return JsConstantExpression.False; } }
 
-        public static JsFunctionDefinitionExpression FunctionDefinition(IEnumerable<string> parameterNames, JsStatement body, string name = null) {
-            return new JsFunctionDefinitionExpression(parameterNames, body, name);
+        public static JsFunctionDefinitionExpression FunctionDefinition(IEnumerable<string> parameterNames, JsStatement body, string name = null, TsType type = null) {
+            return new JsFunctionDefinitionExpression(parameterNames, body, name, type);
         }
 
         public static JsIdentifierExpression Identifier(string name) {

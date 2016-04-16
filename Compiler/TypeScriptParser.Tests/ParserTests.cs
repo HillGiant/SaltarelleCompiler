@@ -5,6 +5,8 @@ using TypeScriptModel;
 
 namespace TypeScriptParser.Tests
 {
+    using System.IO;
+
     [TestFixture]
     public class ParserTests
     {
@@ -31,7 +33,7 @@ namespace TypeScriptParser.Tests
         {
             var model = Parser.Parse(s, new ThrowingErrorReporter());
             var actual = OutputFormatter.Format(model, true);
-            Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(s.Replace("\r\n", "\n")));
+            Assert.That(actual.Replace("\r\n", "\n").Replace("\t", "    "), Is.EqualTo(s.Replace("\r\n", "\n").Replace("\t", "    ")));
         }
 
         [Test]
@@ -50,7 +52,7 @@ namespace TypeScriptParser.Tests
             Assert.That(er.Entries, Is.Not.Empty);
         }
 
-        /*[Test]
+        [Test]
         public void VariableWithoutType() {
                 Roundtrip("declare var myVariable;\n");
         }
@@ -60,6 +62,7 @@ namespace TypeScriptParser.Tests
                 Roundtrip("declare var myVariable: SomeType;\n");
         }
 
+        
         [Test]
         public void GlobalFunction() {
                 Roundtrip(
@@ -101,8 +104,8 @@ declare function myFunction();
         public void CompositeType() {
                 Roundtrip(
 @"declare var v: {
-member1: any;
-member2: type2;
+    member1: any;
+    member2: type2;
 };
 ");
         }
@@ -111,10 +114,10 @@ member2: type2;
         public void Constructor() {
                 Roundtrip(
 @"declare var v: {
-new ();
-new (): ReturnType1;
-new (a): ReturnType2;
-new (a?: type1, ...b: type2[]): ReturnType3;
+    new ();
+    new (): ReturnType1;
+    new (a): ReturnType2;
+    new (a?: type1, ...b: type2[]): ReturnType3;
 };
 ");
         }
@@ -123,9 +126,9 @@ new (a?: type1, ...b: type2[]): ReturnType3;
         public void Indexer() {
                 Roundtrip(
 @"declare var v: {
-[arg1];
-[arg2]: ReturnType1;
-[arg3: number]: ReturnType2;
+    [arg1: string]: ReturnType0;
+    [arg2: string]: ReturnType1;
+    [arg3: number]: ReturnType2;
 };
 ");
         }
@@ -134,10 +137,10 @@ new (a?: type1, ...b: type2[]): ReturnType3;
         public void MemberFunctions() {
                 Roundtrip(
 @"declare var v: {
-member1();
-member2(): returnType1;
-member3(arg1): returnType2;
-member4(arg1?: type1, ...arg2): returnType2;
+    member1();
+    member2(): returnType1;
+    member3(arg1): returnType2;
+    member4(arg1?: type1, ...arg2): returnType2;
 };
 ");
         }
@@ -146,10 +149,10 @@ member4(arg1?: type1, ...arg2): returnType2;
         public void NamelessMemberFunction() {
                 Roundtrip(
 @"declare var v: {
-();
-(): returnType1;
-(arg1): returnType2;
-(arg1?: type1, ...arg2): returnType2;
+    ();
+    (): returnType1;
+    (arg1): returnType2;
+    (arg1?: type1, ...arg2): returnType2;
 };
 ");
         }
@@ -158,11 +161,11 @@ member4(arg1?: type1, ...arg2): returnType2;
         public void MultipleMemberTypes() {
                 Roundtrip(
 @"declare var v: {
-(arg1): returnType1;
-method1(arg2): returnType2;
-new (): returnType3;
-[arg1]: returnType4;
-var1: returnType5;
+    (arg1): returnType1;
+    method1(arg2): returnType2;
+    new (): returnType3;
+    [arg1: string]: returnType4;
+    var1: returnType5;
 };
 ");
         }
@@ -171,8 +174,8 @@ var1: returnType5;
         public void OptionalMember() {
                 Roundtrip(
 @"declare var v: {
-member1?;
-member2?: type2;
+    member1?;
+    member2?: type2;
 };
 ");
         }
@@ -189,11 +192,11 @@ member2?: type2;
         public void InterfaceWithMembers() {
                 Roundtrip(
 @"interface IFace {
-(arg1): returnType1;
-method1(arg2): returnType2;
-new (): returnType3;
-[arg1]: returnType4;
-var1: returnType5;
+    (arg1): returnType1;
+    method1(arg2): returnType2;
+    new (): returnType3;
+    [arg1: string]: returnType4;
+    var1: returnType5;
 }
 ");
         }
@@ -209,85 +212,81 @@ var1: returnType5;
         [Test]
         public void EmptyModule() {
                 Roundtrip(
-@"declare module ""myModule"" {
-}
-");
+@"declare module ""myModule""{
+}");
         }
 
         [Test]
         public void ModuleWithImports() {
                 Roundtrip(
-@"declare module ""myModule"" {
-import imp1 = module(""otherModule1"");
-import imp2 = module(""otherModule2"");
-}
-");
+@"declare module ""myModule""{
+    import imp1 = module(""otherModule1"");
+    import imp2 = module(""otherModule2"");
+}");
         }
 
         [Test]
         public void ModuleWithInterface() {
                 Roundtrip(
-@"declare module ""myModule"" {
-interface MyInterface {
+@"declare module ""myModule""{
+    interface MyInterface {
         myMethod();
-}
-}
-");
+    }
+
+}");
         }
 
         [Test]
         public void ModuleWithExportedInterface() {
                 Roundtrip(
-@"declare module ""myModule"" {
-export interface MyInterface {
+@"declare module ""myModule""{
+    export interface MyInterface {
         myMethod();
-}
-}
-");
+    }
+
+}");
         }
 
         [Test]
         public void ModuleWithMembers() {
                 Roundtrip(
-@"declare module ""myModule"" {
-var myVar1;
-var myVar2: myType;
-function myFunction();
-function myFunction2(arg1: someType): someReturnType;
-}
-");
+@"declare module ""myModule""{
+    var myVar1;
+    var myVar2: myType;
+    function myFunction();
+    function myFunction2(arg1: someType): someReturnType;
+
+}");
         }
 
         [Test]
         public void ModuleWithExportedMembers() {
                 Roundtrip(
-@"declare module ""myModule"" {
-export var myVar1;
-export var myVar2: myType;
-export function myFunction2(arg1: someType): someReturnType;
-export function myFunction();
-}
-");
+@"declare module ""myModule""{
+    export var myVar1;
+    export var myVar2: myType;
+    export function myFunction2(arg1: someType): someReturnType;
+    export function myFunction();
+}");
         }
 
         [Test]
         public void ModuleMemberOrdering() {
                 Roundtrip(
-@"declare module ""myModule"" {
-export interface IFace2 {
-}
-export var myVar1;
-interface IFace1 {
-}
-var myVar2;
-}
-");
+@"declare module ""myModule""{
+    export interface IFace2 {
+    }
+    export var myVar1;
+    interface IFace1 {
+    }
+    var myVar2;
+}");
         }
 
-        /*[Test]
+        [Test]
         public void RoundtripAllNodeTypes() {
                 var source = File.ReadAllText("node.d.ts");
                 Roundtrip(source);
-        }*/
+        }
     }
 }

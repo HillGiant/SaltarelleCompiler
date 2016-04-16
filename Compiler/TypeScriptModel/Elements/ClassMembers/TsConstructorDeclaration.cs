@@ -3,7 +3,6 @@
 namespace TypeScriptModel.Elements.ClassMembers
 {
     using TypeScriptModel.Statements;
-    using TypeScriptModel.TypeSystem;
     using TypeScriptModel.Visitors;
 
     public class TsConstructorDeclaration: TsClassMember

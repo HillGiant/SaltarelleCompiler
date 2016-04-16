@@ -6,6 +6,7 @@ using System.Linq;
 namespace TypeScriptModel.Statements
 {
     using TypeScriptModel.ExtensionMethods;
+    using TypeScriptModel.TypeSystem;
     using TypeScriptModel.Visitors;
 
     [Serializable]
@@ -13,8 +14,9 @@ namespace TypeScriptModel.Statements
         public string Name { get; private set; }
         public ReadOnlyCollection<string> ParameterNames { get; private set; }
         public JsBlockStatement Body { get; private set; }
+        public TsType Type { get; private set; }
 
-        public JsFunctionStatement(string name, IEnumerable<string> parameterNames, JsStatement body) {
+        public JsFunctionStatement(string name, IEnumerable<string> parameterNames, JsStatement body, TsType type = null) {
             if (!name.IsValidJavaScriptIdentifier()) throw new ArgumentException("name");
             if (parameterNames == null) throw new ArgumentNullException("parameterNames");
             if (body == null) throw new ArgumentNullException("body");
@@ -24,6 +26,7 @@ namespace TypeScriptModel.Statements
 				throw new ArgumentException("parameterNames");
             Body = JsBlockStatement.MakeBlock(body);
             Name = name;
+            Type = type;
         }
 
         public override TReturn Accept<TReturn, TData>(IStatementVisitor<TReturn, TData> visitor, TData data)
