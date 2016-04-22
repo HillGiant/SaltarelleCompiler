@@ -16,8 +16,7 @@
         {
             var input =
 @"interface foo {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends, Is.Null);
@@ -31,8 +30,7 @@
         {
             var input =
 @"interface foo extends bar {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends.Count, Is.EqualTo(1));
@@ -47,8 +45,7 @@
         {
             var input =
 @"interface foo extends bar, baz {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends.Count, Is.EqualTo(2));
@@ -64,8 +61,7 @@
         {
             var input =
 @"interface foo<T> {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends, Is.Null);
@@ -80,8 +76,7 @@
         {
             var input =
 @"interface foo<T, U> {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends, Is.Null);
@@ -98,8 +93,7 @@
             var input =
 @"interface q {
     foo;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsPropertySignature>());
@@ -116,8 +110,7 @@
             var input =
 @"interface q {
     foo?;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsPropertySignature>());
@@ -134,8 +127,7 @@
             var input =
 @"interface q {
     foo?: string;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsPropertySignature>());
@@ -154,8 +146,7 @@
 @"interface q {
     foo?: string;
     bar: number;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(2));
             Assert.That(type.Members[0], Is.TypeOf<TsPropertySignature>());
@@ -169,8 +160,7 @@
             var input =
 @"interface q {
     ();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -183,8 +173,7 @@
             var input =
 @"interface q {
     (foo);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -204,8 +193,7 @@
             var input =
 @"interface q {
     (foo): bar;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -225,8 +213,7 @@
             var input =
 @"interface q {
     (foo: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -248,8 +235,7 @@
             var input =
 @"interface q {
     (foo?: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -269,8 +255,7 @@
             var input =
 @"interface q {
     (foo?: string, ...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -291,8 +276,7 @@
             var input =
 @"interface q {
     (...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -312,8 +296,7 @@
             var input =
 @"interface q {
     <T, U>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -334,8 +317,7 @@
             var input =
 @"interface q {
     <T extends { a: string; b: number; }, U extends foo>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsCallSignature>());
@@ -356,8 +338,7 @@
             var input =
 @"interface q {
     [foo: string]: typeRef;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsIndexSignature>());
@@ -376,8 +357,7 @@
             var input =
 @"interface q {
     [foo: number]: typeRef;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsIndexSignature>());
@@ -396,8 +376,7 @@
             var input =
 @"interface q {
     bork();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -410,8 +389,7 @@
             var input =
 @"interface q {
     bork(foo);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -435,8 +413,7 @@
             var input =
 @"interface q {
     bork(foo): typeRef;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -458,8 +435,7 @@
             var input =
 @"interface q {
     bork?(foo): typeRef;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -481,8 +457,7 @@
             var input =
 @"interface q {
     bork(foo: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -506,8 +481,7 @@
             var input =
 @"interface q {
     bork(foo?: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -529,8 +503,7 @@
             var input =
 @"interface q {
     bork(foo?: string, ...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -553,8 +526,7 @@
             var input =
 @"interface q {
     bork(...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -576,8 +548,7 @@
             var input =
 @"interface q {
     bork<T, U>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -600,8 +571,7 @@
             var input =
 @"interface q {
     bork<T extends { a: string; b: number; }, U extends foo>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsMethodSignature>());
@@ -625,8 +595,7 @@
             var input =
 @"interface q {
     new ();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -639,8 +608,7 @@
             var input =
 @"interface q {
     new (foo);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -660,8 +628,7 @@
             var input =
 @"interface q {
     new (foo): bar;
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -681,8 +648,7 @@
             var input =
 @"interface q {
     new (foo: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -704,8 +670,7 @@
             var input =
 @"interface q {
     new (foo?: string);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -725,8 +690,7 @@
             var input =
 @"interface q {
     new (foo?: string, ...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -747,8 +711,7 @@
             var input =
 @"interface q {
     new (...bar);
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -768,8 +731,7 @@
             var input =
 @"interface q {
     new <T, U>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -790,8 +752,7 @@
             var input =
 @"interface q {
     new <T extends { a: string; b: number; }, U extends foo>();
-}
-";
+}";
             var type = TestUtils.ParseElement<TsInterface>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
             Assert.That(type.Members[0], Is.TypeOf<TsConstructSignature>());
@@ -858,7 +819,6 @@
 @"declare module ""foo""{
     export interface bar {
     }
-
 }";
             var type = TestUtils.ParseElement<TsAmbientDeclaration>(input);
             Assert.That(type.Declared, Is.TypeOf<TsModule>());
@@ -875,8 +835,7 @@
         {
             var input =
 @"declare interface bar {
-}
-";
+}";
             var type = TestUtils.ParseElement<TsAmbientDeclaration>(input);
             Assert.That(type.Declared, Is.TypeOf<TsInterface>());
             TestUtils.SerializedTypeMatchesInput(input, type);

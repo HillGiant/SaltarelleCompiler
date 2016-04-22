@@ -187,6 +187,7 @@ tokens {
     TUPLE_TYPE;
     CONST_DECL;
     METH_DECL;
+    AMBIENTFUNCTION;
 }
 
 @lexer::namespace { TypeScriptParser.TypeScriptParserImpl }
@@ -316,7 +317,7 @@ SingleLineComment
 
 token
 	: reservedWord
-	| Identifier
+	| identifier
 	| punctuator
 	| numericLiteral
 	| StringLiteral
@@ -437,9 +438,26 @@ as first character in ranges other than ASCII and consumes further characters be
 IdentifierPart rule above.
 */
 Identifier
-	: IdentifierNameASCIIStart
+        : IdentifierNameASCIIStart
 	| { ConsumeIdentifierUnicodeStart(); }
 	;
+
+/* allow the usage of "contextual keywords" as identifiers*/
+identifier
+    : (x=ANY
+    | x=BOOLEAN
+    | x=CONSTRUCTOR
+    | x=DECLARE
+    | x=GET
+    | x=SET
+    | x=MODULE
+    | x=REQUIRE
+    | x=NUMBER
+    | x=STRING
+    | x=TYPE
+    | x=Identifier)
+    { $x.Type = Identifier; }
+    ;
 
 // $>
 
@@ -645,7 +663,7 @@ RegularExpressionLiteral
 
 primaryExpression
 	: THIS
-	| Identifier
+	| identifier
 	| literal
 	| arrayLiteral
 	| objectLiteral
@@ -673,7 +691,7 @@ nameValuePair
 	;
 
 propertyName
-	: Identifier
+	: identifier
 	| StringLiteral
 	| numericLiteral
 	;
@@ -711,7 +729,7 @@ leftHandSideExpression
 	(
 		arguments			-> ^( CALL $leftHandSideExpression arguments )
 		| LBRACK expression RBRACK	-> ^( BYINDEX $leftHandSideExpression expression )
-		| DOT Identifier		-> ^( BYFIELD $leftHandSideExpression Identifier )
+		| DOT identifier		-> ^( BYFIELD $leftHandSideExpression identifier )
 	)*
 	;
 
@@ -1010,11 +1028,11 @@ variableStatement
 	;
 
 variableDeclaration
-	: Identifier typeAnnotation? ( ASSIGN assignmentExpression )?
+	: identifier typeAnnotation? ( ASSIGN assignmentExpression )?
 	;
 	
 variableDeclarationNoIn
-	: Identifier typeAnnotation? ( ASSIGN assignmentExpressionNoIn )?
+	: identifier typeAnnotation? ( ASSIGN assignmentExpressionNoIn )?
 	;
 
 // $>
@@ -1168,7 +1186,7 @@ no line terminators allowed beween CONTINUE and the optional identifier.
 As an optimization we check the la first to decide whether there is an identier following.
 */
 continueStatement
-	: CONTINUE^ { if (input.LA(1) == Identifier) PromoteEOL(null); } Identifier? semic!
+	: CONTINUE^ { if (input.LA(1) == Identifier) PromoteEOL(null); } identifier? semic!
 	;
 
 // $>
@@ -1181,7 +1199,7 @@ no line terminators allowed beween BREAK and the optional identifier.
 As an optimization we check the la first to decide whether there is an identier following.
 */
 breakStatement
-	: BREAK^ { if (input.LA(1) == Identifier) PromoteEOL(null); } Identifier? semic!
+	: BREAK^ { if (input.LA(1) == Identifier) PromoteEOL(null); } identifier? semic!
 	;
 
 // $>
@@ -1239,8 +1257,8 @@ defaultClause
 // $<Labelled statements (12.12)
 
 labelledStatement
-	: Identifier COLON statement
-	-> ^( LABELLED Identifier statement )
+	: identifier COLON statement
+	-> ^( LABELLED identifier statement )
 	;
 
 // $>
@@ -1275,7 +1293,7 @@ tryStatement
 	;
 	
 catchClause
-	: CATCH^ LPAREN! Identifier RPAREN! block
+	: CATCH^ LPAREN! identifier RPAREN! block
 	;
 	
 finallyClause
@@ -1293,18 +1311,13 @@ finallyClause
 // $<	Function Definition (13)
 
 functionDeclaration
-	: FUNCTION name=Identifier formalParameterList typeAnnotation? functionBody
-	-> ^( FUNCTIONDECLARATION $name formalParameterList typeAnnotation? functionBody )
+	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? functionBody? semic
+	-> ^( FUNCTIONDECLARATION $name typeParameters? parameterList? typeAnnotation? functionBody? )
 	;
 
 functionExpression
-	: FUNCTION name=Identifier? formalParameterList typeAnnotation? functionBody
-	-> ^( FUNCTION $name? formalParameterList typeAnnotation? functionBody )
-	;
-
-formalParameterList
-	: LPAREN ( Identifier ( COMMA Identifier )* )? RPAREN
-	-> ^( ARGS Identifier* )
+	: FUNCTION name=identifier? typeParameters? LPAREN parameterList? RPAREN typeAnnotation? functionBody
+	-> ^( FUNCTION $name? typeParameters? parameterList? typeAnnotation?  functionBody )
 	;
 
 functionBody
@@ -1330,14 +1343,14 @@ options
 {
 	k = 1 ;
 }
-	: { input.LA(1) == FUNCTION }? functionDeclaration
-	| statement
+    : { input.LA(1) == FUNCTION }? functionDeclaration
+    | ambientDeclaration
+    | statement
     | interfaceDeclaration
     | classDeclaration
     | importDeclaration
     | enumDeclaration
-    | ambientDeclaration
-	;
+    ;
 
 // $>
 
@@ -1356,7 +1369,7 @@ typeParameters
     ;
 
 typeParameter
-    : Identifier typeConstraint? -> ^(Identifier typeConstraint?)
+    : identifier typeConstraint? -> ^(identifier typeConstraint?)
     ;
     
 // $>
@@ -1437,13 +1450,13 @@ typeReference
     ;
 
 typeName
-    : Identifier
+    : identifier
     | qName
     ;
 
 qName
 	@init { string result = ""; }
-	: x=Identifier { result = $x.text; } ( DOT { result += '.'; } y=Identifier { result += $y.text; } )+ -> Identifier[null, result]
+	: x=identifier { result = $x.text; } ( DOT { result += '.'; } y=identifier { result += $y.text; } )+ -> Identifier[null, result]
 	;
 // $>
 // $<	3.7.3 Object Type Literals
@@ -1497,7 +1510,7 @@ constructorType
 // $<	3.7.9 Type Queries
 
 typeQuery
-    : TYPEOF^ (Identifier | qName)
+    : TYPEOF^ (identifier | qName)
     ;
     
 // $>
@@ -1534,11 +1547,11 @@ accessibilityModifier
     ;
 
 parameter
-    : accessibilityModifier? Identifier QUE? typeAnnotation?( ASSIGN assignmentExpression )? -> ^(PARAM Identifier accessibilityModifier? QUE? typeAnnotation? assignmentExpression?)
+    : accessibilityModifier? identifier QUE? typeAnnotation?( ASSIGN assignmentExpression )? -> ^(PARAM identifier accessibilityModifier? QUE? typeAnnotation? assignmentExpression?)
     ;
 
 restParameter
-    : ELLIPSIS Identifier typeAnnotation? -> ^(ELLIPSIS Identifier typeAnnotation?)
+    : ELLIPSIS identifier typeAnnotation? -> ^(ELLIPSIS identifier typeAnnotation?)
     ;
 
 // $>
@@ -1554,8 +1567,8 @@ options
 {
 	k = 4 ;
 }
-    : LBRACK Identifier COLON STRING RBRACK typeAnnotation -> ^(INDEX_SIG Identifier STRING typeAnnotation)
-    | LBRACK Identifier COLON NUMBER RBRACK typeAnnotation -> ^(INDEX_SIG Identifier NUMBER typeAnnotation)
+    : LBRACK identifier COLON STRING RBRACK typeAnnotation -> ^(INDEX_SIG identifier STRING typeAnnotation)
+    | LBRACK identifier COLON NUMBER RBRACK typeAnnotation -> ^(INDEX_SIG identifier NUMBER typeAnnotation)
     ;
 
 methodSignature
@@ -1565,7 +1578,7 @@ methodSignature
 // $<	3.9 Type Aliases
 
 typeAliasDeclaration
-    : TYPE Identifier EQ type semic
+    : TYPE identifier EQ type semic
     ;
 
 // $>
@@ -1578,7 +1591,7 @@ typeAnnotation
 // $<	5 Interfaces
 
 interfaceDeclaration
-	: INTERFACE Identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(INTERFACE Identifier typeParameters? extendsClause? typeMember*)
+	: INTERFACE identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(INTERFACE identifier typeParameters? extendsClause? typeMember*)
 	;
 	
 extendsClause
@@ -1590,11 +1603,11 @@ extendsClause
 // $<   6 Classes
 
 classDeclaration
-	: CLASS Identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS Identifier typeParameters? extendsClause? classElement*)
+	: CLASS identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? classElement*)
 	;
 	
 implementsClause	
-	: IMPLEMENTS Identifier (COMMA Identifier)*
+	: IMPLEMENTS identifier (COMMA identifier)*
 	;
 	
 classElement
@@ -1602,11 +1615,11 @@ options
 {
 	k = 4 ;
 }
-	: constructorDeclaration 
+	: getAccessor 
+        | setAccessor
+	| constructorDeclaration 
 	| memberVariableDeclaration 
 	| memberFunctionDeclaration 
-	| getAccessor 
-    | setAccessor
 	| indexSignature semic -> indexSignature
 	;
 		
@@ -1619,7 +1632,7 @@ constructorCallSignature
 	;
 	
 memberVariableDeclaration
-	: accessibilityModifier? STATIC? Identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
+	: accessibilityModifier? STATIC? identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
 	;
 	
 memberFunctionDeclaration	
@@ -1627,15 +1640,15 @@ memberFunctionDeclaration
 	;
 	
 memberFunctionCallSignature
-	: accessibilityModifier? STATIC? Identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(METH_SIG accessibilityModifier? STATIC? Identifier typeParameters? parameterList? typeAnnotation?)
+	: accessibilityModifier? STATIC? identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(METH_SIG accessibilityModifier? STATIC? identifier typeParameters? parameterList? typeAnnotation?)
 	;
 	
 getAccessor
-	: accessibilityModifier? STATIC? GET Identifier LPAREN RPAREN typeAnnotation? functionBody -> ^(GET accessibilityModifier? STATIC? Identifier typeAnnotation? functionBody)
+	: accessibilityModifier? STATIC? GET identifier LPAREN RPAREN typeAnnotation? functionBody -> ^(GET accessibilityModifier? STATIC? identifier typeAnnotation? functionBody)
 	;
 	
 setAccessor
-	: accessibilityModifier? STATIC? SET Identifier LPAREN parameter RPAREN typeAnnotation? functionBody -> ^(SET accessibilityModifier? STATIC? Identifier parameter typeAnnotation? functionBody)
+	: accessibilityModifier? STATIC? SET identifier LPAREN parameter RPAREN typeAnnotation? functionBody -> ^(SET accessibilityModifier? STATIC? identifier parameter typeAnnotation? functionBody)
 	;
 
 // $>
@@ -1643,7 +1656,7 @@ setAccessor
 
 // $<   7 Enums
 enumDeclaration	
-	: CONST? ENUM Identifier LBRACE enumBody RBRACE
+	: CONST? ENUM identifier LBRACE enumBody RBRACE
 	;
 	
 enumBody
@@ -1651,7 +1664,7 @@ enumBody
 	;
 
 enumMember
-	: Identifier( ASSIGN^ assignmentExpression )?
+	: identifier( ASSIGN^ assignmentExpression )?
 	;
 
 // $>
@@ -1659,7 +1672,7 @@ enumMember
 // $<   8 Internal Modules
 
 moduleDeclaration
-	: MODULE StringLiteral LBRACE (moduleElement (COMMA moduleElement)*)? RBRACE -> ^(MODULE StringLiteral moduleElement*)
+	: MODULE StringLiteral LBRACE (moduleElement)* RBRACE -> ^(MODULE StringLiteral moduleElement*)
 	;
 
 public moduleElement
@@ -1667,19 +1680,19 @@ options
 {
 	k = 1 ;
 }
-	: { input.LA(1) == FUNCTION }? functionDeclaration
-	| statement
+    : importDeclaration
+    | ambientDeclaration
+    | moduleDeclaration
+    | { input.LA(1) == FUNCTION }? functionDeclaration
+    | statement
     | interfaceDeclaration
     | classDeclaration
-    | moduleDeclaration
-    | importDeclaration
     | enumDeclaration
     | exportDeclaration
-    | ambientDeclaration
-	;
+    ;
 	
 importDeclaration
-	: IMPORT Identifier ASSIGN qName
+	: IMPORT identifier ASSIGN MODULE LPAREN StringLiteral RPAREN
 	;
 
 exportDeclaration
@@ -1711,12 +1724,14 @@ ambientElement
     | ambientFunctionDeclaration
     ;
 
-ambientFunctionDeclaration
-    : methodSignature
-    ;
-
 ambientClassDeclaration
-	: CLASS Identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(CLASS Identifier typeParameters? extendsClause? typeMember*)
+	: CLASS identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? typeMember*)
+	;
+
+
+ambientFunctionDeclaration
+	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? semic
+	-> ^( AMBIENTFUNCTION $name typeParameters? parameterList? typeAnnotation? )
 	;
 
 // $>

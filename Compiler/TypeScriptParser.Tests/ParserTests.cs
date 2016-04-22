@@ -73,12 +73,12 @@ declare function myFunction();
 
         [Test]
         public void ArrayType() {
-                Roundtrip("declare var v: SomeType[];\n");
+            Roundtrip("declare var v: SomeType[];\n");
         }
 
         [Test]
         public void ArrayOfArray() {
-                Roundtrip("declare var v: SomeType[][];\n");
+            Roundtrip("declare var v: SomeType[][];\n");
         }
 
         [Test]
@@ -213,7 +213,8 @@ declare function myFunction();
         public void EmptyModule() {
                 Roundtrip(
 @"declare module ""myModule""{
-}");
+}
+");
         }
 
         [Test]
@@ -222,7 +223,8 @@ declare function myFunction();
 @"declare module ""myModule""{
     import imp1 = module(""otherModule1"");
     import imp2 = module(""otherModule2"");
-}");
+}
+");
         }
 
         [Test]
@@ -232,8 +234,8 @@ declare function myFunction();
     interface MyInterface {
         myMethod();
     }
-
-}");
+}
+");
         }
 
         [Test]
@@ -243,8 +245,8 @@ declare function myFunction();
     export interface MyInterface {
         myMethod();
     }
-
-}");
+}
+");
         }
 
         [Test]
@@ -253,10 +255,12 @@ declare function myFunction();
 @"declare module ""myModule""{
     var myVar1;
     var myVar2: myType;
-    function myFunction();
-    function myFunction2(arg1: someType): someReturnType;
-
-}");
+    function myFunction(){
+    }
+    function myFunction2(arg1: someType): someReturnType{
+    }
+}
+");
         }
 
         [Test]
@@ -267,7 +271,8 @@ declare function myFunction();
     export var myVar2: myType;
     export function myFunction2(arg1: someType): someReturnType;
     export function myFunction();
-}");
+}
+");
         }
 
         [Test]
@@ -280,7 +285,8 @@ declare function myFunction();
     interface IFace1 {
     }
     var myVar2;
-}");
+}
+");
         }
 
         [Test]

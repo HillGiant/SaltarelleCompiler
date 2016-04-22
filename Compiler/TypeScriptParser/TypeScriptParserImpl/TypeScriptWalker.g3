@@ -122,7 +122,8 @@ public sourceElement returns [TsSourceElement result]
     | (e = classElement)
     | (e = moduleElement)
     | (e = exportDeclaration)
-    | (e = ambientDeclaration))
+    | (e = ambientDeclaration)
+    | (e = ambientFunctionDeclaration))
     { $result = e; }
     ;
 
@@ -350,12 +351,12 @@ leftHandSideExpression returns [JsExpression result]
 
 functionExpression returns [JsExpression result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTION i=Identifier? ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) (a=typeAnnotation)? b=block ) { $result = JsExpression.FunctionDefinition(parms, b, i != null ? i.Text : null, a); }
+	: ^( FUNCTION i=Identifier? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block) ) { $result = JsExpression.FunctionDefinition(typeParams, parameters, i != null ? i.Text : null, b, annotation); }
 	;
 
 functionDeclaration returns [JsStatement result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTIONDECLARATION i=Identifier ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) (a=typeAnnotation)? b=block ) { $result = new JsFunctionStatement(i.Text, parms, b, a); }
+	: ^( FUNCTIONDECLARATION i=Identifier (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block)? ) { $result = new JsFunctionStatement(typeParams, parameters, i.Text, b, annotation); }
 	;
 
 callExpression returns [JsExpression result]
@@ -525,6 +526,12 @@ methodSignature returns [TsTypeMember result]
     @init { bool optional = false; }
     :^(METH_SIG p=propertyName (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
     {$result = new TsMethodSignature(p, optional, typeParams, parameters, annotation);}
+    ;
+
+ambientFunctionDeclaration returns [TsSourceElement result]
+    @init { bool optional = false; }
+    :^(AMBIENTFUNCTION i=Identifier (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    {$result = new TsAmbientFunctionDeclaration(i.Text, optional, typeParams, parameters, annotation);}
     ;
 
 constructSignature returns [TsTypeMember result]

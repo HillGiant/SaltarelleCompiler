@@ -229,8 +229,8 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests
         [Test]
         public void FunctionDeclarationStatement()
         {
-            RoundtripStatement("function f() {\n\tx;\n}\n");
-            RoundtripStatement("function f(a, b, c) {\n\tx;\n}\n");
+            RoundtripStatement("function f(){\n\tx;\n}\n");
+            RoundtripStatement("function f(a, b, c){\n\tx;\n}\n");
         }
 
         [Test]

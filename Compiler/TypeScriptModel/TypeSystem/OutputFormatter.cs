@@ -63,7 +63,8 @@ namespace TypeScriptModel
             var fmt = new OutputFormatter(allowIntermediates);
             foreach (var element in elements)
             {
-                fmt.VisitElement(element, true);
+                fmt.VisitElement(element, false);
+                fmt._cb.AppendLine();
             }
             return fmt._cb.ToString();
         }
@@ -267,7 +268,6 @@ namespace TypeScriptModel
             }
             _cb.Append(" ");
             this.FormatTypeMemberList(iface.Members);
-            _cb.AppendLine();
             return null;
         }
 
@@ -388,6 +388,15 @@ namespace TypeScriptModel
                 _cb.Append("?");
             }
             FormatCallSignature(methodSignature);
+            _cb.Append(";");
+            return null;
+        }
+
+        public object VisitAmbientFunctionDeclaration(TsAmbientFunctionDeclaration function, bool data)
+        {
+            _cb.Append("function ");
+            _cb.Append(function.Name);
+            FormatCallSignature(function);
             _cb.Append(";");
             return null;
         }
@@ -557,23 +566,7 @@ namespace TypeScriptModel
             _cb.Append("function");
             if (expression.Name != null)
                 _cb.Append(" ").Append(expression.Name);
-            _cb.Append("(");
-
-            bool first = true;
-            foreach (var arg in expression.ParameterNames)
-            {
-                if (!first)
-                    _cb.Append("," + _space);
-                _cb.Append(arg);
-                first = false;
-            }
-            _cb.Append(")" + _space);
-
-            if (expression.Type != null)
-            {
-                _cb.Append(": ");
-                expression.Type.Accept(this, false);
-            }
+            FormatCallSignature(expression);
             VisitStatement(expression.Body, false);
 
             return null;
@@ -1161,21 +1154,16 @@ namespace TypeScriptModel
 
         public object VisitFunctionStatement(JsFunctionStatement statement, bool addNewline)
         {
-            _cb.Append("function " + statement.Name + "(");
-            for (int i = 0; i < statement.ParameterNames.Count; i++)
+            _cb.Append("function " + statement.Name);
+            FormatCallSignature(statement);
+            if(statement.Body != null)
             {
-                if (i != 0)
-                    _cb.Append("," + _space);
-                _cb.Append(statement.ParameterNames[i]);
+                VisitStatement(statement.Body, addNewline);
             }
-            _cb.Append(")" + _space);
-
-            if (statement.Type != null)
+            else
             {
-                _cb.Append(": ");
-                statement.Type.Accept(this, false);
+                _cb.Append(";");
             }
-            VisitStatement(statement.Body, addNewline);
             return null;
         }
 

@@ -57,6 +57,7 @@
     <Compile Include="Elements\ClassMembers\TsConstructorDeclaration.cs" />
     <Compile Include="Elements\ClassMembers\TsMethodDeclaration.cs" />
     <Compile Include="Elements\TsAmbientDeclaration.cs" />
+    <Compile Include="Elements\TsAmbientFunctionDeclaration.cs" />
     <Compile Include="Elements\TsExportElement.cs" />
     <Compile Include="Elements\TsStatementElement.cs" />
     <Compile Include="Expressions\JsArrayLiteralExpression.cs" />

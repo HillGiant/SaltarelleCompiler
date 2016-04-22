@@ -298,8 +298,8 @@ namespace TypeScriptModel.Expressions {
         public static JsConstantExpression True { get { return JsConstantExpression.True; } }
         public static JsConstantExpression False { get { return JsConstantExpression.False; } }
 
-        public static JsFunctionDefinitionExpression FunctionDefinition(IEnumerable<string> parameterNames, JsStatement body, string name = null, TsType type = null) {
-            return new JsFunctionDefinitionExpression(parameterNames, body, name, type);
+        public static JsFunctionDefinitionExpression FunctionDefinition(IList<TsTypeParameter> typeParameters, IList<TsParameter> parameters, string name, JsStatement body, TsType type = null) {
+            return new JsFunctionDefinitionExpression(typeParameters, parameters, body, name, type);
         }
 
         public static JsIdentifierExpression Identifier(string name) {

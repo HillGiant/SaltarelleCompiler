@@ -202,7 +202,7 @@
         public void FunctionDefinitionExpression1()
         {
             RoundtripExpression(
-@"(function f() {
+@"(function f(){
 })()");
         }
 
@@ -210,7 +210,7 @@
         public void FunctionDefinitionExpression2()
         {
             RoundtripExpression(
-@"(function f(a, b) {
+@"(function f(a, b){
 	c;
 })()");
         }
@@ -219,7 +219,7 @@
         public void FunctionDefinitionExpression3()
         {
             RoundtripExpression(
-@"(function(a, b) {
+@"(function(a, b){
 	c;
 })()");
         }

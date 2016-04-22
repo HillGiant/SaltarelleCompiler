@@ -2,11 +2,13 @@ using System.Collections.Generic;
 
 namespace TypeScriptModel.TypeSystem
 {
+    using TypeScriptModel.Elements;
     using TypeScriptModel.Visitors;
 
-    public class TsMethodSignature : TsTypeMember, IHasCallSignature
+    public class TsAmbientFunctionDeclaration : TsSourceElement, IHasCallSignature
     {
         public string Name { get; private set; }
+
         public bool Optional { get; private set; }
 
         public TsType ReturnType { get; private set; }
@@ -15,7 +17,7 @@ namespace TypeScriptModel.TypeSystem
 
         public IList<TsTypeParameter> TypeParameters { get; private set; }
 
-        public TsMethodSignature(
+        public TsAmbientFunctionDeclaration(
             string name,
             bool optional,
             IList<TsTypeParameter> typeParameters,
@@ -29,9 +31,9 @@ namespace TypeScriptModel.TypeSystem
             ReturnType = returnType;
         }
 
-        public override TReturn Accept<TReturn, TData>(ITypeMemberVisitor<TReturn, TData> visitor, TData data)
+        public TReturn Accept<TReturn, TData>(ISourceElementVisitor<TReturn, TData> visitor, TData data)
         {
-            return visitor.VisitMethodSignature(this, data);
+            return visitor.VisitAmbientFunctionDeclaration(this, data);
         }
     }
 }
