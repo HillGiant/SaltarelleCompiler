@@ -306,11 +306,11 @@ namespace TypeScriptModel
         public object VisitModule(TsModule tsModule, bool data)
         {
             _cb.Append("module \"").Append(tsModule.Name).Append("\"");
-            _cb.AppendLine("{").Indent();
+            _cb.AppendLine(" {").Indent();
             foreach (var e in tsModule.Elements)
             {
                 e.Accept(this, false);
-                _cb.AppendLine();
+                 _cb.AppendLine();
             }
             _cb.Outdent().Append("}");
             return null;
@@ -1339,6 +1339,12 @@ namespace TypeScriptModel
             }
             
             return string.Empty;
+        }
+
+        public object VisitImportDeclaration(TsImportDeclaration tsImportDeclaration, bool data)
+        {
+            this._cb.Append("import ").Append(tsImportDeclaration.Alias).Append(" = module(\"").Append(tsImportDeclaration.Module).Append("\");");
+            return null;
         }
     }
 }

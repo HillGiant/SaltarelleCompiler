@@ -771,7 +771,7 @@
         public void EmptyModule()
         {
             var input =
-@"declare module ""foo""{
+@"declare module ""foo"" {
 }";
             var type = TestUtils.ParseElement<TsAmbientDeclaration>(input);
             Assert.That(type.Declared, Is.TypeOf<TsModule>());
@@ -785,7 +785,7 @@
         public void EmptyModuleWithQName()
         {
             var input =
-@"declare module ""foo.bar""{
+@"declare module ""foo.bar"" {
 }";
             var type = TestUtils.ParseElement<TsAmbientDeclaration>(input);
             Assert.That(type.Declared, Is.TypeOf<TsModule>());
@@ -799,7 +799,7 @@
         public void ModuleWithClass()
         {
             var input =
-@"declare module ""foo""{
+@"declare module ""foo"" {
     class bar {
     }
 
@@ -816,7 +816,7 @@
         public void ModuleWithExport()
         {
             var input =
-@"declare module ""foo""{
+@"declare module ""foo"" {
     export interface bar {
     }
 }";

@@ -317,6 +317,7 @@ SingleLineComment
 
 token
 	: reservedWord
+	| identifierAllowedKeyword
 	| identifier
 	| punctuator
 	| numericLiteral
@@ -429,6 +430,22 @@ fragment IdentifierNameASCIIStart
 	: IdentifierStartASCII IdentifierPart*
 	;
 
+/* allow the usage of "contextual keywords" as identifiers*/
+identifierAllowedKeyword
+    : ANY
+    | CONSTRUCTOR
+    | DECLARE
+    | GET
+    | SET
+    | MODULE
+    | REQUIRE
+    | NUMBER
+    | STRING
+    | TYPE
+    | FINAL
+    | THROWS
+    ;
+
 /*
 The second alternative acts as an action driven fallback to evaluate other characters in the unicode range than the ones in the ASCII subset.
 Due to the first alternative this grammar defines enough so that ANTLR can generate a lexer that correctly predicts identifiers with characters in the ASCII range.
@@ -437,26 +454,15 @@ match this ASCII definition, the lexer calls ConsumeIdentifierUnicodeStart becau
 as first character in ranges other than ASCII and consumes further characters belonging to the identifier with help of mIdentifierPart generated out of the 
 IdentifierPart rule above.
 */
+
 Identifier
         : IdentifierNameASCIIStart
 	| { ConsumeIdentifierUnicodeStart(); }
 	;
 
-/* allow the usage of "contextual keywords" as identifiers*/
 identifier
-    : (x=ANY
-    | x=BOOLEAN
-    | x=CONSTRUCTOR
-    | x=DECLARE
-    | x=GET
-    | x=SET
-    | x=MODULE
-    | x=REQUIRE
-    | x=NUMBER
-    | x=STRING
-    | x=TYPE
-    | x=Identifier)
-    { $x.Type = Identifier; }
+    : identifierAllowedKeyword
+    | Identifier
     ;
 
 // $>
@@ -1236,11 +1242,7 @@ withStatement
 // $<The switch statement (12.11)
 
 switchStatement
-@init
-{
-	int defaultClauseCount = 0;
-}
-	: SWITCH LPAREN expression RPAREN LBRACE ( { defaultClauseCount == 0 }?=> c+=defaultClause { defaultClauseCount++; } | c+=caseClause )* RBRACE
+	: SWITCH LPAREN expression RPAREN LBRACE (c+=defaultClause| c+=caseClause )* RBRACE
 	-> ^( SWITCH expression $c* )
 	;
 
@@ -1692,7 +1694,7 @@ options
     ;
 	
 importDeclaration
-	: IMPORT identifier ASSIGN MODULE LPAREN StringLiteral RPAREN
+	: IMPORT identifier ASSIGN MODULE LPAREN StringLiteral RPAREN semic -> ^(IMPORT identifier StringLiteral)
 	;
 
 exportDeclaration

@@ -59,6 +59,7 @@
     <Compile Include="Elements\TsAmbientDeclaration.cs" />
     <Compile Include="Elements\TsAmbientFunctionDeclaration.cs" />
     <Compile Include="Elements\TsExportElement.cs" />
+    <Compile Include="Elements\TsImportDeclaration.cs" />
     <Compile Include="Elements\TsStatementElement.cs" />
     <Compile Include="Expressions\JsArrayLiteralExpression.cs" />
     <Compile Include="Expressions\JsBinaryExpression.cs" />

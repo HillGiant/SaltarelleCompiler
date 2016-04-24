@@ -212,7 +212,7 @@ declare function myFunction();
         [Test]
         public void EmptyModule() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
 }
 ");
         }
@@ -220,7 +220,7 @@ declare function myFunction();
         [Test]
         public void ModuleWithImports() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     import imp1 = module(""otherModule1"");
     import imp2 = module(""otherModule2"");
 }
@@ -230,7 +230,7 @@ declare function myFunction();
         [Test]
         public void ModuleWithInterface() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     interface MyInterface {
         myMethod();
     }
@@ -241,7 +241,7 @@ declare function myFunction();
         [Test]
         public void ModuleWithExportedInterface() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     export interface MyInterface {
         myMethod();
     }
@@ -252,7 +252,7 @@ declare function myFunction();
         [Test]
         public void ModuleWithMembers() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     var myVar1;
     var myVar2: myType;
     function myFunction(){
@@ -266,7 +266,7 @@ declare function myFunction();
         [Test]
         public void ModuleWithExportedMembers() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     export var myVar1;
     export var myVar2: myType;
     export function myFunction2(arg1: someType): someReturnType;
@@ -278,7 +278,7 @@ declare function myFunction();
         [Test]
         public void ModuleMemberOrdering() {
                 Roundtrip(
-@"declare module ""myModule""{
+@"declare module ""myModule"" {
     export interface IFace2 {
     }
     export var myVar1;

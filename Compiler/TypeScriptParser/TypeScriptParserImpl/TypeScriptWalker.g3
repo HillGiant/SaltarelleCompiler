@@ -123,7 +123,8 @@ public sourceElement returns [TsSourceElement result]
     | (e = moduleElement)
     | (e = exportDeclaration)
     | (e = ambientDeclaration)
-    | (e = ambientFunctionDeclaration))
+    | (e = ambientFunctionDeclaration)
+    | (e = importDeclaration))
     { $result = e; }
     ;
 
@@ -164,7 +165,7 @@ block returns [JsStatement result]
 
 variableDeclaration returns [JsStatement result]
 @init { var vars = new List<JsVariableDeclaration>(); }
-	: ^( VAR ((i=Identifier a=typeAnnotation? (ASSIGN e=expression)?) { vars.Add(new JsVariableDeclaration(i.Text, e, a)); })+)
+	: ^( VAR ((i=identifier a=typeAnnotation? (ASSIGN e=expression)?) { vars.Add(new JsVariableDeclaration(i, e, a)); })+)
     { $result = new JsVariableDeclarationStatement(vars); }
 	;
 
@@ -185,7 +186,7 @@ forStatement returns [JsStatement result]
 	FOR 
 	(
 		  ( ^( FORSTEP { JsStatement init = null; } ( x=exprOptClause { init = x != null ? (JsStatement)new JsExpressionStatement(x) : new JsEmptyStatement(); } | d=variableDeclaration { init = d; } ) x=exprOptClause y=exprOptClause ) s=statement { $result = new JsForStatement(init, x, y, s); } )
-		| ( ^( FORITER { bool isDeclared = false; } ( ^( EXPR i=Identifier ) | ^( VAR i=Identifier { isDeclared = true; } ) ) x=exprClause ) s=statement { $result = new JsForEachInStatement(i.Text, x, s, isDeclared); } )
+		| ( ^( FORITER { bool isDeclared = false; } ( ^( EXPR i=identifier ) | ^( VAR i=identifier { isDeclared = true; } ) ) x=exprClause ) s=statement { $result = new JsForEachInStatement(i, x, s, isDeclared); } )
 	)
 	);
 
@@ -198,11 +199,11 @@ exprClause returns [JsExpression result]
 	;
 
 continueStatement returns [JsStatement result]
-	: ^( CONTINUE i=Identifier? ) { $result = new JsContinueStatement(i != null ? i.Text : null); }
+	: ^( CONTINUE i=identifier? ) { $result = new JsContinueStatement(i != null ? i : null); }
 	;
 
 breakStatement returns [JsStatement result]
-	: ^( BREAK i=Identifier? ) { $result = new JsBreakStatement(i != null ? i.Text : null); }
+	: ^( BREAK i=identifier? ) { $result = new JsBreakStatement(i != null ? i : null); }
 	;
 
 returnStatement returns [JsStatement result]
@@ -214,7 +215,7 @@ withStatement returns [JsStatement result]
 	;
 
 labelledStatement returns [JsStatement result]
-	: ^( LABELLED Identifier s=statement ) { $result = new JsLabelledStatement($Identifier.Text, s); }
+	: ^( LABELLED i=identifier s=statement ) { $result = new JsLabelledStatement(i, s); }
 	;
 
 switchStatement returns [JsStatement result]
@@ -245,7 +246,7 @@ tryStatement returns [JsStatement result]
 	;
 	
 catchClause returns [JsCatchClause result]
-	: ^( CATCH Identifier b=block ) { $result = new JsCatchClause($Identifier.Text, b); }
+	: ^( CATCH i=identifier b=block ) { $result = new JsCatchClause(i, b); }
 	;
 	
 finallyClause returns [JsStatement result]
@@ -253,7 +254,7 @@ finallyClause returns [JsStatement result]
 	;
 
 gotoStatement returns [JsStatement result]
-	: ^( GOTO Identifier ) { $result = new JsGotoStatement($Identifier.Text); }
+	: ^( GOTO i=identifier ) { $result = new JsGotoStatement(i); }
 	;
 
 yieldStatement returns [JsStatement result]
@@ -261,7 +262,7 @@ yieldStatement returns [JsStatement result]
 	;
 
 awaitStatement returns [JsStatement result]
-	: ^( AWAIT x=expression y=Identifier ) { $result = new JsAwaitStatement(x, y.Text); }
+	: ^( AWAIT x=expression y=identifier ) { $result = new JsAwaitStatement(x, y); }
 	;
 
 public expression returns [JsExpression result]
@@ -351,12 +352,12 @@ leftHandSideExpression returns [JsExpression result]
 
 functionExpression returns [JsExpression result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTION i=Identifier? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block) ) { $result = JsExpression.FunctionDefinition(typeParams, parameters, i != null ? i.Text : null, b, annotation); }
+	: ^( FUNCTION i=identifier? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block) ) { $result = JsExpression.FunctionDefinition(typeParams, parameters, i != null ? i : null, b, annotation); }
 	;
 
 functionDeclaration returns [JsStatement result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTIONDECLARATION i=Identifier (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block)? ) { $result = new JsFunctionStatement(typeParams, parameters, i.Text, b, annotation); }
+	: ^( FUNCTIONDECLARATION i=identifier (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block)? ) { $result = new JsFunctionStatement(typeParams, parameters, i, b, annotation); }
 	;
 
 callExpression returns [JsExpression result]
@@ -367,11 +368,11 @@ callExpression returns [JsExpression result]
 	
 memberExpression returns [JsExpression result]
 	: ^( BYINDEX a=leftHandSideExpression b=expression { $result = JsExpression.Index(a, b); } )
-	| ^( BYFIELD a=leftHandSideExpression Identifier { $result = JsExpression.MemberAccess(a, $Identifier.Text); } )
+	| ^( BYFIELD a=leftHandSideExpression i=identifier { $result = JsExpression.MemberAccess(a, i); } )
 	;
 
 primaryExpression returns [JsExpression result]
-	: Identifier { $result = JsExpression.Identifier($Identifier.Text); }
+	: i=identifier { $result = JsExpression.Identifier(i); }
 	| x=literal { $result = x; }
 	| ^(PAREXPR x=expression { $result = x; })
 	;
@@ -409,7 +410,7 @@ objectLiteral returns [JsExpression result]
 	;
 
 propertyName returns [ string result ]
-	: Identifier       { $result = $Identifier.Text; }
+	: i=identifier       { $result = i; }
 	| StringLiteral	   { $result = $StringLiteral.Text.Substring(1, $StringLiteral.Text.Length - 2); }
 	| x=numericLiteral { $result = ((JsConstantExpression)x).NumberValue.ToString(CultureInfo.InvariantCulture); }
 	;
@@ -426,8 +427,8 @@ public type returns [TsType result]
 	;
 
 typeReference returns [TsType result]
-    : ^( TYPEREF n=Identifier args=typeArguments? ) 
-    { $result = new TsTypeReference(n.Text, args); }
+    : ^( TYPEREF n=identifier args=typeArguments? ) 
+    { $result = new TsTypeReference(n, args); }
 	;
 
 typeArguments returns [IList<TsType> result]
@@ -483,8 +484,8 @@ typeParameters returns [IList<TsTypeParameter> result]
     ;
 
 typeParameter returns [TsTypeParameter result]
-    : ^((i = Identifier) (c = typeConstraint)?)
-    { $result = new TsTypeParameter(i.Text, c);  }
+    : ^((i = identifier) (c = typeConstraint)?)
+    { $result = new TsTypeParameter(i, c);  }
     ;
 
 typeConstraint returns [TsType result]
@@ -501,8 +502,8 @@ parameterList returns [IList<TsParameter> result]
 
 parameter returns [TsParameter result]
     @init { var optional = false; }
-    : ^(PARAM (name=Identifier) (modifier = accessibilityModifier)? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
-    { $result = new TsParameter(name.Text, a, optional, false, modifier);  }
+    : ^(PARAM (name=identifier) (modifier = accessibilityModifier)? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
+    { $result = new TsParameter(name, a, optional, false, modifier);  }
     ;
 
 accessibilityModifier returns [AccessibilityModifier result]
@@ -512,14 +513,14 @@ accessibilityModifier returns [AccessibilityModifier result]
     ;
 
 restParameter returns [TsParameter result]
-    : ^(ELLIPSIS (n=Identifier) (a=typeAnnotation)?)
-    { $result = new TsParameter(n.Text, a, false, true, null);  }
+    : ^(ELLIPSIS (n=identifier) (a=typeAnnotation)?)
+    { $result = new TsParameter(n, a, false, true, null);  }
     ;
 
 indexSignature returns [TsTypeMember result]
     @init { TsPrimitiveType parameterType = null; }
-    :^(INDEX_SIG (n=Identifier) ((STRING {parameterType = TsPrimitiveType.String;}) | (NUMBER{parameterType = TsPrimitiveType.Number;})) (a=typeAnnotation))
-    {$result = new TsIndexSignature(n.Text, parameterType, a);}
+    :^(INDEX_SIG (n=identifier) ((STRING {parameterType = TsPrimitiveType.String;}) | (NUMBER{parameterType = TsPrimitiveType.Number;})) (a=typeAnnotation))
+    {$result = new TsIndexSignature(n, parameterType, a);}
     ;
 
 methodSignature returns [TsTypeMember result]
@@ -530,8 +531,8 @@ methodSignature returns [TsTypeMember result]
 
 ambientFunctionDeclaration returns [TsSourceElement result]
     @init { bool optional = false; }
-    :^(AMBIENTFUNCTION i=Identifier (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
-    {$result = new TsAmbientFunctionDeclaration(i.Text, optional, typeParams, parameters, annotation);}
+    :^(AMBIENTFUNCTION i=identifier (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    {$result = new TsAmbientFunctionDeclaration(i, optional, typeParams, parameters, annotation);}
     ;
 
 constructSignature returns [TsTypeMember result]
@@ -557,8 +558,8 @@ tupleType returns [TsType result]
 
 interfaceElement returns [TsSourceElement result]
     @init { var members = new List<TsTypeMember>(); }
-    : ^(INTERFACE i=Identifier p=typeParameters? e=extendsClause? (m=typeMember { members.Add(m); })*)
-    { $result = new TsInterface(i.Text, p, e, members); }
+    : ^(INTERFACE i=identifier p=typeParameters? e=extendsClause? (m=typeMember { members.Add(m); })*)
+    { $result = new TsInterface(i, p, e, members); }
     ;
 
 extendsClause returns [List<TsTypeReference> result]
@@ -569,8 +570,8 @@ extendsClause returns [List<TsTypeReference> result]
 
 classElement returns [TsSourceElement result]
     @init { var members = new List<TsClassMember>(); }
-    : ^(CLASS (i=Identifier) (p=typeParameters)? (e=extendsClause)? ((m=classMember) { members.Add(m); })*)
-    { $result = new TsClass(i.Text, p, e, members); }
+    : ^(CLASS (i=identifier) (p=typeParameters)? (e=extendsClause)? ((m=classMember) { members.Add(m); })*)
+    { $result = new TsClass(i, p, e, members); }
     ;
 
 classMember returns [TsClassMember result]
@@ -602,8 +603,8 @@ methodDeclaration returns [TsClassMember result]
 
 methodCallSignature returns [TsClassMethodSignature result]
     @init { AccessibilityModifier? accessibility = null; bool s = false; }
-    : ^(METH_SIG (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
-    { $result = new TsClassMethodSignature(accessibility, s, i.Text, parameters, typeParams, annotation);}
+    : ^(METH_SIG (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    { $result = new TsClassMethodSignature(accessibility, s, i, parameters, typeParams, annotation);}
     ;
 
 classIndexSignature returns [TsClassMember result]
@@ -613,14 +614,14 @@ classIndexSignature returns [TsClassMember result]
 
 getAccessor returns [TsClassMember result]
     @init { AccessibilityModifier? accessibility = null; bool s = false; }
-    : ^(GET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (annotation = typeAnnotation)? (f = block))
-    { $result = new TsClassGetAccessor(accessibility, s, i.Text, annotation, f); }
+    : ^(GET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassGetAccessor(accessibility, s, i, annotation, f); }
     ;
 
 setAccessor returns [TsClassMember result]
     @init { AccessibilityModifier? accessibility = null; bool s = false; }
-    : ^(SET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=Identifier) (p = parameter) (annotation = typeAnnotation)? (f = block))
-    { $result = new TsClassSetAccessor(accessibility, s, i.Text, p, annotation, f); }
+    : ^(SET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (p = parameter) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassSetAccessor(accessibility, s, i, p, annotation, f); }
     ;
 
 moduleElement returns [TsSourceElement result]
@@ -639,3 +640,24 @@ ambientDeclaration returns [TsSourceElement result]
     { $result = new TsAmbientDeclaration(e); }
     ;
 
+identifier returns [string result]
+    : (x= ANY
+    | x= CONSTRUCTOR
+    | x= DECLARE
+    | x= GET
+    | x= SET
+    | x= MODULE
+    | x= REQUIRE
+    | x= NUMBER
+    | x= STRING
+    | x= TYPE
+    | x= FINAL
+    | x= THROWS
+    | x= Identifier)
+    { $result = x.Text; }
+    ;
+
+importDeclaration returns [TsSourceElement result]
+    : ^(IMPORT a = identifier m = StringLiteral)
+    { $result = new TsImportDeclaration(a,m.Text.Substring(1, m.Text.Length - 2)); }
+    ;

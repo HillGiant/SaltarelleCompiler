@@ -19,5 +19,7 @@ namespace TypeScriptModel.Visitors
         TReturn VisitAmbientDeclaration(TsAmbientDeclaration tsAmbientDeclaration, TData data);
 
         TReturn VisitAmbientFunctionDeclaration(TypeSystem.TsAmbientFunctionDeclaration tsAmbientFunctionDeclaration, TData data);
+
+        TReturn VisitImportDeclaration(TsImportDeclaration tsImportDeclaration, TData data);
     }
 }
