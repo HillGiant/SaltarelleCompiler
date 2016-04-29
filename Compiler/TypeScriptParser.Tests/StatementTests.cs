@@ -7,7 +7,7 @@ using TypeScriptModel.Statements;
 namespace Saltarelle.Compiler.Tests.JavaScriptParserTests
 {
     [TestFixture]
-    public class JavaScriptParserTests
+    public class StatementTests
     {
         private T ParseStatement<T>(string source) where T : JsStatement
         {
@@ -65,6 +65,13 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests
             RoundtripStatement("var i = 0;\n");
             RoundtripStatement("var i, j, k;\n");
             RoundtripStatement("var i = 0, j = 1, k = 2;\n");
+            RoundtripStatement("var i = new foo(a, b, c);\n");
+        }
+
+        [Test]
+        public void ArrowDeclaration()
+        {
+            RoundtripStatement("var legalize = d => d > 1 ? 1 : d;\n");
         }
 
         [Test]

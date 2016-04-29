@@ -715,6 +715,7 @@ memberExpression
 	: primaryExpression
 	| functionExpression
 	| newExpression
+        | arrowFunctionExpression
 	;
 
 newExpression
@@ -1634,7 +1635,8 @@ constructorCallSignature
 	;
 	
 memberVariableDeclaration
-	: accessibilityModifier? STATIC? identifier typeAnnotation? ( ASSIGN^ assignmentExpression )?
+        : accessibilityModifier? STATIC? variableDeclaration semic
+	-> ^( VAR accessibilityModifier? STATIC? variableDeclaration )
 	;
 	
 memberFunctionDeclaration	
@@ -1735,6 +1737,19 @@ ambientFunctionDeclaration
 	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? semic
 	-> ^( AMBIENTFUNCTION $name typeParameters? parameterList? typeAnnotation? )
 	;
+
+arrowFunctionExpression
+    : callSignature { PromoteEOL(null); } ARROW conciseBody
+    ;
+
+conciseBody
+options
+{
+	k = 1 ;
+}
+    : functionBody
+    | assignmentExpression
+    ;
 
 // $>
 

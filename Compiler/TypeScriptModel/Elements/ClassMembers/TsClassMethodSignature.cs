@@ -5,7 +5,7 @@
 
     using TypeScriptModel.TypeSystem;
 
-    public class TsClassMethodSignature : IHasCallSignature
+    public class TsClassMethodSignature : TsClassMember, IHasCallSignature
     {
         public AccessibilityModifier? Accessibility;
 
@@ -29,7 +29,7 @@
             ReturnType = returnType;
         }
 
-        public TReturn Accept<TReturn, TData>(IClassMemberVisitor<TReturn, TData> visitor, TData data)
+        public override TReturn Accept<TReturn, TData>(IClassMemberVisitor<TReturn, TData> visitor, TData data)
         {
             return visitor.VisitClassMethodSignature(this, data);
         }

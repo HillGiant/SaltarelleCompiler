@@ -47,6 +47,9 @@
     <Compile Include="ExpressionTests.cs" />
     <Compile Include="ParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="raytracer.ts">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="StatementTests.cs" />
     <Compile Include="TestUtils.cs" />
     <Compile Include="ThrowingErrorReporter.cs" />

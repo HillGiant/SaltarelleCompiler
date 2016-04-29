@@ -17,5 +17,7 @@ namespace TypeScriptModel.Visitors
         TReturn VisitClassSetAccessor(TsClassSetAccessor tsClassSetAccessor, TData data);
 
         TReturn VisitClassGetAccessor(TsClassGetAccessor tsClassGetAccessor, TData data);
+
+        TReturn VisitClassMemberDeclaration(TsClassMemberDeclaration tsClassMemberDeclaration, TData data);
     }
 }

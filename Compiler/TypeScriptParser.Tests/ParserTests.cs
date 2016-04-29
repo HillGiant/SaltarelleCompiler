@@ -294,5 +294,12 @@ declare function myFunction();
                 var source = File.ReadAllText("node.d.ts");
                 Roundtrip(source);
         }
+
+        [Test]
+        public void RoundtripRaytracer()
+        {
+            var source = File.ReadAllText("raytracer.ts");
+            Roundtrip(source);
+        }
     }
 }

@@ -52,6 +52,7 @@
     <Compile Include="Elements\ClassMembers\TsClassGetAccessor.cs" />
     <Compile Include="Elements\ClassMembers\TsClassIndexSignature.cs" />
     <Compile Include="Elements\ClassMembers\TsClassMember.cs" />
+    <Compile Include="Elements\ClassMembers\TsClassMemberDeclaration.cs" />
     <Compile Include="Elements\ClassMembers\TsClassMethodSignature.cs" />
     <Compile Include="Elements\ClassMembers\TsClassSetAccessor.cs" />
     <Compile Include="Elements\ClassMembers\TsConstructorDeclaration.cs" />

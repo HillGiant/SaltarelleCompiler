@@ -977,5 +977,24 @@ namespace TypeScriptParser.Tests
 
             TestUtils.SerializedTypeMatchesInput(input, type);
         }
+
+        [Test]
+        public void MemberVariableWithConstructor()
+        {
+            var input =
+@"class foo {
+    static bar = new baz(q);
+}
+";
+            var type = TestUtils.ParseElement<TsClass>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsClassMemberDeclaration>());
+
+            var dec = type.Members[0] as TsClassMemberDeclaration;
+            Assert.That(dec.VariableDeclaration.Name, Is.EqualTo("bar"));
+            Assert.That(dec.IsStatic);
+
+            TestUtils.SerializedTypeMatchesInput(input, type);
+        }
     }
 }

@@ -1274,6 +1274,34 @@ namespace TypeScriptModel
             return null;
         }
 
+        public object VisitClassMemberDeclaration(TsClassMemberDeclaration tsClassMemberDeclaration, bool addNewline)
+        {
+            if (tsClassMemberDeclaration.Accessibility != null)
+            {
+                this._cb.Append(FormatAccessibility(tsClassMemberDeclaration.Accessibility));
+            }
+            if (tsClassMemberDeclaration.IsStatic)
+            {
+                this._cb.Append("static ");
+            }
+            _cb.Append(tsClassMemberDeclaration.VariableDeclaration.Name);
+
+            if (tsClassMemberDeclaration.VariableDeclaration.Type != null)
+            {
+                _cb.Append(":" + _space);
+                tsClassMemberDeclaration.VariableDeclaration.Type.Accept(this, addNewline);
+            }
+
+            if (tsClassMemberDeclaration.VariableDeclaration.Initializer != null)
+            {
+                _cb.Append(_space + "=" + _space);
+                VisitExpression(tsClassMemberDeclaration.VariableDeclaration.Initializer, false);
+            }
+            this._cb.Append(";");
+
+            return null;
+        }
+
         public object VisitClassIndexSignature(TsClassIndexSignature tsClassIndexSignaure, bool data)
         {
             return tsClassIndexSignaure.Signature.Accept(this, data);

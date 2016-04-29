@@ -576,10 +576,11 @@ classElement returns [TsSourceElement result]
 
 classMember returns [TsClassMember result]
     : ((m = constructorDeclaration)
-    |  (m =methodDeclaration)
-    |  (m =classIndexSignature)
-    |  (m =getAccessor)
-    |  (m =setAccessor))
+    |  (m = methodDeclaration)
+    |  (m = classIndexSignature)
+    |  (m = getAccessor)
+    |  (m = setAccessor)
+    |  (m = memberVariableDeclaration))
     { $result = m; }
     ;
 
@@ -660,4 +661,10 @@ identifier returns [string result]
 importDeclaration returns [TsSourceElement result]
     : ^(IMPORT a = identifier m = StringLiteral)
     { $result = new TsImportDeclaration(a,m.Text.Substring(1, m.Text.Length - 2)); }
+    ;
+
+memberVariableDeclaration returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^( VAR (a=accessibilityModifier {accessibility = a;})? (STATIC { s=true;})? i=identifier ann=typeAnnotation? (ASSIGN e=expression)?)
+    { $result = new TsClassMemberDeclaration(accessibility,s,new JsVariableDeclaration(i, e, ann)); }
     ;
