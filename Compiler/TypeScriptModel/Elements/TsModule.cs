@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using TypeScriptModel.Elements;
-
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.Elements
 {
+    using System.Collections.Generic;
+
     using TypeScriptModel.Visitors;
 
     public class TsModule: TsSourceElement
@@ -13,8 +12,8 @@ namespace TypeScriptModel.TypeSystem
 
         public TsModule(string name, IList<TsSourceElement> elements)
         {
-            Name = name;
-            Elements = elements;
+            this.Name = name;
+            this.Elements = elements;
         }
 
         public TReturn Accept<TReturn, TData>(ISourceElementVisitor<TReturn, TData> visitor, TData data)

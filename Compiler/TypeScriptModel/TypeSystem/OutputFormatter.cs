@@ -1,20 +1,21 @@
-﻿using System.Collections.Generic;
-using TypeScriptModel.TypeSystem;
-using TypeScriptModel.Elements;
-using TypescriptMode.Model;
-using TypeScriptModel.Expressions;
-using TypeScriptModel.Statements;
-using TypeScriptModel.Visitors;
-
-namespace TypeScriptModel
+﻿namespace TypeScriptModel.TypeSystem
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
 
+    using TypescriptMode.Model;
+
+    using TypeScriptModel.Elements;
     using TypeScriptModel.Elements.ClassMembers;
+    using TypeScriptModel.Expressions;
     using TypeScriptModel.ExtensionMethods;
-    using TypeScriptModel.TypeSystem.Elements;
+    using TypeScriptModel.Statements;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.TypeMembers;
+    using TypeScriptModel.TypeSystem.Types;
+    using TypeScriptModel.Visitors;
 
     public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>, ISourceElementVisitor<object, bool>, IClassMemberVisitor<object, bool>
     {
@@ -26,8 +27,8 @@ namespace TypeScriptModel
 
         public OutputFormatter(bool allowIntermediates, bool inline = false)
         {
-            _allowIntermediates = allowIntermediates;
-            _cb = new CodeBuilder(0, inline);
+            this._allowIntermediates = allowIntermediates;
+            this._cb = new CodeBuilder(0, inline);
         }
 
         public static string Format(TsSourceElement element, bool allowIntermediates = false)
@@ -73,12 +74,12 @@ namespace TypeScriptModel
         {
             if (parenthesized)
             {
-                _cb.Append("(");
+                this._cb.Append("(");
             }
             expression.Accept(this, parenthesized);
             if (parenthesized)
             {
-                _cb.Append(")");
+                this._cb.Append(")");
             }
             return null;
         }
@@ -89,60 +90,52 @@ namespace TypeScriptModel
             foreach (var x in expressions)
             {
                 if (!first)
-                    _cb.Append("," + _space);
-                VisitExpression(x, GetPrecedence(x.NodeType) >= PrecedenceComma); // We need to parenthesize comma expressions, eg. [1, (2, 3), 4]
+                    this._cb.Append("," + this._space);
+                this.VisitExpression(x, GetPrecedence(x.NodeType) >= PrecedenceComma); // We need to parenthesize comma expressions, eg. [1, (2, 3), 4]
                 first = false;
             }
         }
 
-        private void FormatGlobalMember(TsTypeMember typeMember, string prefix)
-        {
-            if (!string.IsNullOrEmpty(prefix))
-                _cb.Append(prefix).Append(" ");
-            _cb.Append(typeMember is TsMethodSignature ? "function " : "var ");
-            typeMember.Accept(this, false);
-            _cb.AppendLine();
-        }
-
         private void FormatTypeMemberList(IEnumerable<TsTypeMember> members)
         {
-            _cb.AppendLine("{").Indent();
+            this._cb.AppendLine("{").Indent();
             foreach (var m in members)
             {
                 m.Accept(this, false);
-                _cb.AppendLine();
+                this._cb.AppendLine();
             }
-            _cb.Outdent().Append("}");
+            this._cb.Outdent().Append("}");
         }
 
         private void FormatClassMemberList(IEnumerable<TsClassMember> members)
         {
-            _cb.AppendLine("{").Indent();
+            this._cb.AppendLine("{").Indent();
             foreach (var m in members)
             {
                 m.Accept(this, false);
-                _cb.AppendLine();
+                this._cb.AppendLine();
             }
-            _cb.Outdent().Append("}");
+            this._cb.Outdent().Append("}");
         }
 
         private void FormatParameter(TsParameter p)
         {
+            this._cb.Append(FormatAccessibility(p.Modifier));
             if (p.ParamArray)
-                _cb.Append("...");
-            _cb.Append(p.Name);
+                this._cb.Append("...");
+            this._cb.Append(p.Name);
             if (p.Optional)
-                _cb.Append("?");
+                this._cb.Append("?");
             if (p.Type != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 p.Type.Accept(this, false);
             }
         }
 
         private void FormatParameterList(IEnumerable<TsParameter> parameters)
         {
-            _cb.Append("(");
+            this._cb.Append("(");
             if (parameters != null)
             {
                 bool first = true;
@@ -150,20 +143,20 @@ namespace TypeScriptModel
                 {
                     if (!first)
                     {
-                        _cb.Append(", ");
+                        this._cb.Append(", ");
                     }
-                    FormatParameter(p);
+                    this.FormatParameter(p);
                     first = false;
                 }
             }
 
-            _cb.Append(")");
+            this._cb.Append(")");
         }
 
         public object VisitArrayType(TsArrayType type, bool data)
         {
             type.ElementType.Accept(this, false);
-            _cb.Append("[]");
+            this._cb.Append("[]");
             return null;
         }
 
@@ -177,44 +170,44 @@ namespace TypeScriptModel
         {
             if (type.TypeParameters != null)
             {
-                FormatTypeParameters(type.TypeParameters);
+                this.FormatTypeParameters(type.TypeParameters);
             }
-            FormatParameterList(type.Parameters);
-            _cb.Append(" => ");
+            this.FormatParameterList(type.Parameters);
+            this._cb.Append(" => ");
             type.ReturnType.Accept(this, false);
             return null;
         }
 
         public object VisitConstructorType(TsConstructorType type, bool data)
         {
-            _cb.Append("new ");
+            this._cb.Append("new ");
             if (type.TypeParameters != null)
             {
-                FormatTypeParameters(type.TypeParameters);
+                this.FormatTypeParameters(type.TypeParameters);
             }
-            FormatParameterList(type.Parameters);
-            _cb.Append(" => ");
+            this.FormatParameterList(type.Parameters);
+            this._cb.Append(" => ");
             type.ReturnType.Accept(this, false);
             return null;
         }
 
         private void FormatTypeParameters(IList<TsTypeParameter> typeParameters)
         {
-            _cb.Append("<");
+            this._cb.Append("<");
             bool first = true;
             foreach (var p in typeParameters)
             {
                 if (!first)
-                    _cb.Append(", ");
+                    this._cb.Append(", ");
                 this.FormatTypeParameter(p);
                 first = false;
             }
-            _cb.Append(">");
+            this._cb.Append(">");
         }
 
         private void FormatTypeParameter(TsTypeParameter typeParameter)
         {
-            _cb.Append(typeParameter.Name);
+            this._cb.Append(typeParameter.Name);
             if (typeParameter.Constraint != null)
             {
                 this._cb.Append(" extends ");
@@ -226,47 +219,47 @@ namespace TypeScriptModel
 
         public object VisitTypeReference(TsTypeReference type, bool data)
         {
-            _cb.Append(type.Name);
+            this._cb.Append(type.Name);
             if (type.TypeArgs != null)
             {
-                _cb.Append("<");
+                this._cb.Append("<");
                 bool first = true;
                 foreach (var arg in type.TypeArgs)
                 {
                     if (!first)
                     {
-                        _cb.Append(", ");
+                        this._cb.Append(", ");
                     }
                     arg.Accept(this, data);
                     first = false;
                 }
-                _cb.Append(">");
+                this._cb.Append(">");
             }
             return null;
         }
 
         public object VisitInterface(TsInterface iface, bool data)
         {
-            _cb.Append("interface ").Append(iface.Name);
+            this._cb.Append("interface ").Append(iface.Name);
             if (iface.TypeParameters != null)
             {
-                FormatTypeParameters(iface.TypeParameters);
+                this.FormatTypeParameters(iface.TypeParameters);
             }
             if (iface.Extends != null)
             {
-                _cb.Append(" extends ");
+                this._cb.Append(" extends ");
                 bool first = true;
                 foreach (var extend in iface.Extends)
                 {
                     if (!first)
                     {
-                        _cb.Append(", ");
+                        this._cb.Append(", ");
                     }
                     extend.Accept(this, data);
                     first = false;
                 }
             }
-            _cb.Append(" ");
+            this._cb.Append(" ");
             this.FormatTypeMemberList(iface.Members);
             return null;
         }
@@ -278,54 +271,68 @@ namespace TypeScriptModel
 
         public object VisitClass(TsClass tsClass, bool data)
         {
-            _cb.Append("class ").Append(tsClass.Name);
+            this._cb.Append("class ").Append(tsClass.Name);
             if (tsClass.TypeParameters != null)
             {
-                FormatTypeParameters(tsClass.TypeParameters);
+                this.FormatTypeParameters(tsClass.TypeParameters);
             }
             if (tsClass.Extends != null)
             {
-                _cb.Append(" extends ");
+                this._cb.Append(" extends ");
                 bool first = true;
                 foreach (var extend in tsClass.Extends)
                 {
                     if (!first)
                     {
-                        _cb.Append(", ");
+                        this._cb.Append(", ");
                     }
                     extend.Accept(this, data);
                     first = false;
                 }
             }
-            _cb.Append(" ");
-            FormatClassMemberList(tsClass.Members);
-            _cb.AppendLine();
+            if (tsClass.Implements != null)
+            {
+                this._cb.Append(" implements ");
+                bool first = true;
+                foreach (var implement in tsClass.Implements)
+                {
+                    if (!first)
+                    {
+                        this._cb.Append(", ");
+                    }
+                    implement.Accept(this, data);
+                    first = false;
+                }
+            }
+            this._cb.Append(" ");
+            this.FormatClassMemberList(tsClass.Members);
+            this._cb.AppendLine();
             return null;
         }
 
         public object VisitModule(TsModule tsModule, bool data)
         {
-            _cb.Append("module \"").Append(tsModule.Name).Append("\"");
-            _cb.AppendLine(" {").Indent();
+            this._cb.Append("module \"").Append(tsModule.Name).Append("\"");
+            this._cb.AppendLine(" {").Indent();
             foreach (var e in tsModule.Elements)
             {
                 e.Accept(this, false);
-                 _cb.AppendLine();
+                 this._cb.AppendLine();
             }
-            _cb.Outdent().Append("}");
+            this._cb.Outdent().Append("}");
             return null;
         }
 
         public object VisitExport(TsExportElement tsExportElement, bool data)
         {
-            _cb.Append("export ");
+            this._cb.Append("export ");
             tsExportElement.Exported.Accept(this, data);
             return null;
         }
 
         public object VisitAmbientDeclaration(TsAmbientDeclaration tsAmbientDeclaration, bool data)
         {
-            _cb.Append("declare ");
+            this._cb.Append("declare ");
             tsAmbientDeclaration.Declared.Accept(this, data);
             return null;
         }
@@ -335,23 +342,23 @@ namespace TypeScriptModel
             switch (tsPrimitiveType.Primitive)
             {
                 case TsPrimitive.Any:
-                    _cb.Append("any");
+                    this._cb.Append("any");
                     break;
 
                 case TsPrimitive.Number:
-                    _cb.Append("number");
+                    this._cb.Append("number");
                     break;
 
                 case TsPrimitive.Boolean:
-                    _cb.Append("boolean");
+                    this._cb.Append("boolean");
                     break;
 
                 case TsPrimitive.String:
-                    _cb.Append("string");
+                    this._cb.Append("string");
                     break;
 
                 case TsPrimitive.Void:
-                    _cb.Append("void");
+                    this._cb.Append("void");
                     break;
             }
             return null;
@@ -364,48 +371,48 @@ namespace TypeScriptModel
 
         public object VisitTupleType(TsTupleType tuple, bool data)
         {
-            _cb.Append("[");
+            this._cb.Append("[");
             bool first = true;
             foreach (var t in tuple.Types)
             {
                 if (!first)
                 {
-                    _cb.Append(", ");
+                    this._cb.Append(", ");
                 }
                 t.Accept(this, data);
                 first = false;
             }
 
-            _cb.Append("]");
+            this._cb.Append("]");
             return null;
         }
 
         public object VisitMethodSignature(TsMethodSignature methodSignature, bool data)
         {
-            _cb.Append(methodSignature.Name);
+            this._cb.Append(methodSignature.Name);
             if(methodSignature.Optional)
             {
-                _cb.Append("?");
+                this._cb.Append("?");
             }
             FormatCallSignature(methodSignature);
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
         public object VisitAmbientFunctionDeclaration(TsAmbientFunctionDeclaration function, bool data)
         {
-            _cb.Append("function ");
-            _cb.Append(function.Name);
+            this._cb.Append("function ");
+            this._cb.Append(function.Name);
             FormatCallSignature(function);
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
         public object VisitConstructSignature(TsConstructSignature ctor, bool data)
         {
-            _cb.Append("new ");
+            this._cb.Append("new ");
             FormatCallSignature(ctor);
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
@@ -413,69 +420,69 @@ namespace TypeScriptModel
         {
             if (item.TypeParameters != null)
             {
-                FormatTypeParameters(item.TypeParameters);
+                this.FormatTypeParameters(item.TypeParameters);
             }
-            FormatParameterList(item.Parameters);
+            this.FormatParameterList(item.Parameters);
             if (item.ReturnType != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 item.ReturnType.Accept(this, false);
             }
         }
 
         public object VisitIndexSignature(TsIndexSignature indexSignature, bool data)
         {
-            _cb.Append("[")
+            this._cb.Append("[")
               .Append(indexSignature.ParameterName);
             if (indexSignature.ParameterType != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 indexSignature.ParameterType.Accept(this, false);
             }
-            _cb.Append("]");
+            this._cb.Append("]");
             if (indexSignature.ReturnType != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 indexSignature.ReturnType.Accept(this, false);
             }
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
         public object VisitPropertySignature(TsPropertySignature propertySignature, bool data)
         {
-            _cb.Append(propertySignature.Name);
+            this._cb.Append(propertySignature.Name);
             if (propertySignature.Optional)
-                _cb.Append("?");
+                this._cb.Append("?");
             if (propertySignature.Type != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 propertySignature.Type.Accept(this, false);
             }
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
         public object VisitCallSignature(TsCallSignature callSignature, bool data)
         {
             FormatCallSignature(callSignature);
-            _cb.Append(";");
+            this._cb.Append(";");
             return null;
         }
 
         public object VisitArrayLiteralExpression(JsArrayLiteralExpression expression, bool parenthesized)
         {
-            _cb.Append("[");
+            this._cb.Append("[");
             bool first = true;
             foreach (var x in expression.Elements)
             {
                 if (!first)
-                    _cb.Append("," + _space);
+                    this._cb.Append("," + this._space);
                 if (x != null)
-                    VisitExpression(x, GetPrecedence(x.NodeType) >= PrecedenceComma); // We need to parenthesize comma expressions, eg. [1, (2, 3), 4]
+                    this.VisitExpression(x, GetPrecedence(x.NodeType) >= PrecedenceComma); // We need to parenthesize comma expressions, eg. [1, (2, 3), 4]
                 first = false;
             }
-            _cb.Append("]");
+            this._cb.Append("]");
             return null;
         }
 
@@ -484,23 +491,23 @@ namespace TypeScriptModel
             int expressionPrecedence = GetPrecedence(expression.NodeType);
             if (expression.NodeType == ExpressionNodeType.Index)
             {
-                VisitExpression(expression.Left, GetPrecedence(expression.Left.NodeType) > expressionPrecedence);
-                _cb.Append("[");
-                VisitExpression(expression.Right, false);
-                _cb.Append("]");
+                this.VisitExpression(expression.Left, GetPrecedence(expression.Left.NodeType) > expressionPrecedence);
+                this._cb.Append("[");
+                this.VisitExpression(expression.Right, false);
+                this._cb.Append("]");
             }
             else
             {
                 bool isRightAssociative = expression.NodeType >= ExpressionNodeType.AssignFirst && expression.NodeType <= ExpressionNodeType.AssignLast;
-                string spaceBefore = expression.NodeType == ExpressionNodeType.InstanceOf || expression.NodeType == ExpressionNodeType.In ? " " : _space;
+                string spaceBefore = expression.NodeType == ExpressionNodeType.InstanceOf || expression.NodeType == ExpressionNodeType.In ? " " : this._space;
                 // If minifying, we need to beware of a + +b and a - -b.
                 string spaceAfter = (expression.NodeType == ExpressionNodeType.Add && expression.Right.NodeType == ExpressionNodeType.Positive) || (expression.NodeType == ExpressionNodeType.Subtract && expression.Right.NodeType == ExpressionNodeType.Negate) ? " " : spaceBefore;
 
-                VisitExpression(expression.Left, GetPrecedence(expression.Left.NodeType) > expressionPrecedence - (isRightAssociative ? 1 : 0));
-                _cb.Append(spaceBefore)
+                this.VisitExpression(expression.Left, GetPrecedence(expression.Left.NodeType) > expressionPrecedence - (isRightAssociative ? 1 : 0));
+                this._cb.Append(spaceBefore)
                    .Append(GetBinaryOperatorString(expression.NodeType))
                    .Append(spaceAfter);
-                VisitExpression(expression.Right, GetPrecedence(expression.Right.NodeType) > expressionPrecedence - (isRightAssociative ? 0 : 1));
+                this.VisitExpression(expression.Right, GetPrecedence(expression.Right.NodeType) > expressionPrecedence - (isRightAssociative ? 0 : 1));
             }
             return null;
         }
@@ -511,8 +518,8 @@ namespace TypeScriptModel
             for (int i = 0; i < expression.Expressions.Count; i++)
             {
                 if (i > 0)
-                    _cb.Append("," + _space);
-                VisitExpression(expression.Expressions[i], GetPrecedence(expression.Expressions[i].NodeType) > expressionPrecedence);
+                    this._cb.Append("," + this._space);
+                this.VisitExpression(expression.Expressions[i], GetPrecedence(expression.Expressions[i].NodeType) > expressionPrecedence);
             }
             return null;
         }
@@ -521,17 +528,17 @@ namespace TypeScriptModel
         {
             // Always parenthesize conditionals (but beware of double parentheses). Better this than accidentally getting the tricky precedence wrong sometimes.
             if (!parenthesized)
-                _cb.Append("(");
+                this._cb.Append("(");
 
             // Also, be rather liberal when parenthesizing the operands, partly to avoid bugs, partly for readability.
-            VisitExpression(expression.Test, GetPrecedence(expression.Test.NodeType) >= PrecedenceMultiply);
-            _cb.Append(_space + "?" + _space);
-            VisitExpression(expression.TruePart, GetPrecedence(expression.TruePart.NodeType) >= PrecedenceMultiply);
-            _cb.Append(_space + ":" + _space);
-            VisitExpression(expression.FalsePart, GetPrecedence(expression.FalsePart.NodeType) >= PrecedenceMultiply);
+            this.VisitExpression(expression.Test, GetPrecedence(expression.Test.NodeType) >= PrecedenceMultiply);
+            this._cb.Append(this._space + "?" + this._space);
+            this.VisitExpression(expression.TruePart, GetPrecedence(expression.TruePart.NodeType) >= PrecedenceMultiply);
+            this._cb.Append(this._space + ":" + this._space);
+            this.VisitExpression(expression.FalsePart, GetPrecedence(expression.FalsePart.NodeType) >= PrecedenceMultiply);
 
             if (!parenthesized)
-                _cb.Append(")");
+                this._cb.Append(")");
 
             return null;
         }
@@ -541,19 +548,19 @@ namespace TypeScriptModel
             switch (expression.NodeType)
             {
                 case ExpressionNodeType.Null:
-                    _cb.Append("null");
+                    this._cb.Append("null");
                     break;
                 case ExpressionNodeType.Number:
-                    _cb.Append(expression.NumberValue.ToString(CultureInfo.InvariantCulture));
+                    this._cb.Append(expression.NumberValue.ToString(CultureInfo.InvariantCulture));
                     break;
                 case ExpressionNodeType.Regexp:
-                    _cb.Append("/" + expression.RegexpValue.Pattern.EscapeJavascriptStringLiteral(true) + "/" + expression.RegexpValue.Options);
+                    this._cb.Append("/" + expression.RegexpValue.Pattern.EscapeJavascriptStringLiteral(true) + "/" + expression.RegexpValue.Options);
                     break;
                 case ExpressionNodeType.String:
-                    _cb.Append("'" + expression.StringValue.EscapeJavascriptStringLiteral() + "'");
+                    this._cb.Append("'" + expression.StringValue.EscapeJavascriptStringLiteral() + "'");
                     break;
                 case ExpressionNodeType.Boolean:
-                    _cb.Append(expression.BooleanValue ? "true" : "false");
+                    this._cb.Append(expression.BooleanValue ? "true" : "false");
                     break;
                 default:
                     throw new ArgumentException("expression");
@@ -563,27 +570,27 @@ namespace TypeScriptModel
 
         public object VisitFunctionDefinitionExpression(JsFunctionDefinitionExpression expression, bool parenthesized)
         {
-            _cb.Append("function");
+            this._cb.Append("function");
             if (expression.Name != null)
-                _cb.Append(" ").Append(expression.Name);
+                this._cb.Append(" ").Append(expression.Name);
             FormatCallSignature(expression);
-            VisitStatement(expression.Body, false);
+            this.VisitStatement(expression.Body, false);
 
             return null;
         }
 
         public object VisitIdentifierExpression(JsIdentifierExpression expression, bool parenthesized)
         {
-            _cb.Append(expression.Name);
+            this._cb.Append(expression.Name);
             return null;
         }
 
         public object VisitInvocationExpression(JsInvocationExpression expression, bool parenthesized)
         {
-            VisitExpression(expression.Method, GetPrecedence(expression.Method.NodeType) > GetPrecedence(expression.NodeType) || (expression.Method is JsNewExpression)); // Ugly code to make sure that we put parentheses around "new", eg. "(new X())(1)" rather than "new X()(1)"
-            _cb.Append("(");
-            VisitExpressionList(expression.Arguments);
-            _cb.Append(")");
+            this.VisitExpression(expression.Method, GetPrecedence(expression.Method.NodeType) > GetPrecedence(expression.NodeType) || (expression.Method is JsNewExpression)); // Ugly code to make sure that we put parentheses around "new", eg. "(new X())(1)" rather than "new X()(1)"
+            this._cb.Append("(");
+            this.VisitExpressionList(expression.Arguments);
+            this._cb.Append(")");
             return null;
         }
 
@@ -591,15 +598,15 @@ namespace TypeScriptModel
         {
             if (expression.Values.Count == 0)
             {
-                _cb.Append("{}");
+                this._cb.Append("{}");
             }
             else
             {
                 bool multiline = expression.Values.Any(p => p.Value is JsFunctionDefinitionExpression);
                 if (multiline)
-                    _cb.AppendLine("{").Indent();
+                    this._cb.AppendLine("{").Indent();
                 else
-                    _cb.Append("{" + _space);
+                    this._cb.Append("{" + this._space);
 
                 bool first = true;
                 foreach (var v in expression.Values)
@@ -607,34 +614,34 @@ namespace TypeScriptModel
                     if (!first)
                     {
                         if (multiline)
-                            _cb.AppendLine(",");
+                            this._cb.AppendLine(",");
                         else
-                            _cb.Append("," + _space);
+                            this._cb.Append("," + this._space);
                     }
-                    _cb.Append(v.Name.IsValidJavaScriptIdentifier() ? v.Name : ("'" + v.Name.EscapeJavascriptStringLiteral() + "'"))
-                       .Append(":" + _space);
-                    VisitExpression(v.Value, GetPrecedence(v.Value.NodeType) >= PrecedenceComma); // We ned to parenthesize comma expressions, eg. [1, (2, 3), 4]
+                    this._cb.Append(v.Name.IsValidJavaScriptIdentifier() ? v.Name : ("'" + v.Name.EscapeJavascriptStringLiteral() + "'"))
+                       .Append(":" + this._space);
+                    this.VisitExpression(v.Value, GetPrecedence(v.Value.NodeType) >= PrecedenceComma); // We ned to parenthesize comma expressions, eg. [1, (2, 3), 4]
                     first = false;
                 }
                 if (multiline)
-                    _cb.AppendLine().Outdent().Append("}");
+                    this._cb.AppendLine().Outdent().Append("}");
                 else
-                    _cb.Append(_space + "}");
+                    this._cb.Append(this._space + "}");
             }
             return null;
         }
 
         public object VisitMemberAccessExpression(JsMemberAccessExpression expression, bool parenthesized)
         {
-            VisitExpression(expression.Target, expression.Target.NodeType == ExpressionNodeType.Number || expression.Target.NodeType == ExpressionNodeType.New || ((GetPrecedence(expression.Target.NodeType) > GetPrecedence(expression.NodeType)) && expression.Target.NodeType != ExpressionNodeType.MemberAccess && expression.Target.NodeType != ExpressionNodeType.Invocation)); // Ugly code to ensure that nested typeMember accesses are not parenthesized, but typeMember access nested in new are (and vice versa). Also we need to make sure that we output "(1).X" for that expression.
-            _cb.Append(".");
-            _cb.Append(expression.MemberName);
+            this.VisitExpression(expression.Target, expression.Target.NodeType == ExpressionNodeType.Number || expression.Target.NodeType == ExpressionNodeType.New || ((GetPrecedence(expression.Target.NodeType) > GetPrecedence(expression.NodeType)) && expression.Target.NodeType != ExpressionNodeType.MemberAccess && expression.Target.NodeType != ExpressionNodeType.Invocation)); // Ugly code to ensure that nested typeMember accesses are not parenthesized, but typeMember access nested in new are (and vice versa). Also we need to make sure that we output "(1).X" for that expression.
+            this._cb.Append(".");
+            this._cb.Append(expression.MemberName);
             return null;
         }
 
         public object VisitNewExpression(JsNewExpression expression, bool parenthesized)
         {
-            _cb.Append("new ");
+            this._cb.Append("new ");
             bool needParens = GetPrecedence(expression.Constructor.NodeType) >= PrecedenceMemberOrNewOrInvocation;
             if (expression.Constructor.NodeType == ExpressionNodeType.MemberAccess)
             {
@@ -655,10 +662,10 @@ namespace TypeScriptModel
                         break;
                 }
             }
-            VisitExpression(expression.Constructor, needParens);
-            _cb.Append("(");
-            VisitExpressionList(expression.Arguments);
-            _cb.Append(")");
+            this.VisitExpression(expression.Constructor, needParens);
+            this._cb.Append("(");
+            this.VisitExpressionList(expression.Arguments);
+            this._cb.Append(")");
             return null;
         }
 
@@ -681,15 +688,15 @@ namespace TypeScriptModel
                 case ExpressionNodeType.Delete: prefix = "delete "; break;
                 default: throw new ArgumentException("expression");
             }
-            _cb.Append(prefix);
-            VisitExpression(expression.Operand, (GetPrecedence(expression.Operand.NodeType) > GetPrecedence(expression.NodeType)) || alwaysParenthesize);
-            _cb.Append(postfix);
+            this._cb.Append(prefix);
+            this.VisitExpression(expression.Operand, (GetPrecedence(expression.Operand.NodeType) > GetPrecedence(expression.NodeType)) || alwaysParenthesize);
+            this._cb.Append(postfix);
             return null;
         }
 
         public object VisitThisExpression(JsThisExpression expression, bool parenthesized)
         {
-            _cb.Append("this");
+            this._cb.Append("this");
             return null;
         }
 
@@ -889,331 +896,331 @@ namespace TypeScriptModel
         public object VisitComment(JsComment comment, bool data)
         {
             foreach (var l in comment.Text.Replace("\r", "").Split('\n'))
-                _cb.AppendLine("//" + l);
+                this._cb.AppendLine("//" + l);
             return null;
         }
 
         public object VisitBlockStatement(JsBlockStatement statement, bool addNewline)
         {
-            _cb.Append("{");
-            _cb.AppendLine();
-            _cb.Indent();
+            this._cb.Append("{");
+            this._cb.AppendLine();
+            this._cb.Indent();
             foreach (var c in statement.Statements)
-                VisitStatement(c, true);
-            _cb.Outdent().Append("}");
+                this.VisitStatement(c, true);
+            this._cb.Outdent().Append("}");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitBreakStatement(JsBreakStatement statement, bool addNewline)
         {
-            _cb.Append("break");
+            this._cb.Append("break");
             if (statement.TargetLabel != null)
-                _cb.Append(" ").Append(statement.TargetLabel);
-            _cb.Append(";");
+                this._cb.Append(" ").Append(statement.TargetLabel);
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitContinueStatement(JsContinueStatement statement, bool addNewline)
         {
-            _cb.Append("continue");
+            this._cb.Append("continue");
             if (statement.TargetLabel != null)
-                _cb.Append(" ").Append(statement.TargetLabel);
-            _cb.Append(";");
+                this._cb.Append(" ").Append(statement.TargetLabel);
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitDoWhileStatement(JsDoWhileStatement statement, bool addNewline)
         {
-            _cb.Append("do" + _space);
-            VisitStatement(statement.Body, false);
-            _cb.Append(_space + "while" + _space + "(");
-            VisitExpression(statement.Condition, false);
-            _cb.Append(");");
+            this._cb.Append("do" + this._space);
+            this.VisitStatement(statement.Body, false);
+            this._cb.Append(this._space + "while" + this._space + "(");
+            this.VisitExpression(statement.Condition, false);
+            this._cb.Append(");");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitEmptyStatement(JsEmptyStatement statement, bool addNewline)
         {
-            _cb.Append(";");
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitExpressionStatement(JsExpressionStatement statement, bool addNewline)
         {
-            VisitExpression(statement.Expression, statement.Expression is JsFunctionDefinitionExpression);
-            _cb.Append(";");
+            this.VisitExpression(statement.Expression, statement.Expression is JsFunctionDefinitionExpression);
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitForEachInStatement(JsForEachInStatement statement, bool addNewline)
         {
-            _cb.Append("for").Append(_space + "(");
+            this._cb.Append("for").Append(this._space + "(");
             if (statement.IsLoopVariableDeclared)
-                _cb.Append("var ");
-            _cb.Append(statement.LoopVariableName)
+                this._cb.Append("var ");
+            this._cb.Append(statement.LoopVariableName)
                .Append(" in ");
-            VisitExpression(statement.ObjectToIterateOver, false);
-            _cb.Append(")" + _space);
-            VisitStatement(statement.Body, addNewline);
+            this.VisitExpression(statement.ObjectToIterateOver, false);
+            this._cb.Append(")" + this._space);
+            this.VisitStatement(statement.Body, addNewline);
             return null;
         }
 
         public object VisitForStatement(JsForStatement statement, bool addNewline)
         {
-            _cb.Append("for").Append(_space + "(");
-            VisitStatement(statement.InitStatement, false);
+            this._cb.Append("for").Append(this._space + "(");
+            this.VisitStatement(statement.InitStatement, false);
 
             if (statement.ConditionExpression != null)
             {
-                _cb.Append(_space);
-                VisitExpression(statement.ConditionExpression, false);
+                this._cb.Append(this._space);
+                this.VisitExpression(statement.ConditionExpression, false);
             }
-            _cb.Append(";");
+            this._cb.Append(";");
 
             if (statement.IteratorExpression != null)
             {
-                _cb.Append(_space);
-                VisitExpression(statement.IteratorExpression, false);
+                this._cb.Append(this._space);
+                this.VisitExpression(statement.IteratorExpression, false);
             }
-            _cb.Append(")" + _space);
-            VisitStatement(statement.Body, addNewline);
+            this._cb.Append(")" + this._space);
+            this.VisitStatement(statement.Body, addNewline);
             return null;
         }
 
         public object VisitIfStatement(JsIfStatement statement, bool addNewline)
         {
         redo:
-            _cb.Append("if").Append(_space + "(");
-            VisitExpression(statement.Test, false);
-            _cb.Append(")" + _space);
-            VisitStatement(statement.Then, (statement.Else != null || addNewline));
+            this._cb.Append("if").Append(this._space + "(");
+            this.VisitExpression(statement.Test, false);
+            this._cb.Append(")" + this._space);
+            this.VisitStatement(statement.Then, (statement.Else != null || addNewline));
             if (statement.Else != null)
             {
-                _cb.Append("else");
+                this._cb.Append("else");
                 if (statement.Else.Statements.Count == 1 && statement.Else.Statements[0] is JsIfStatement)
                 {
-                    _cb.Append(" ");
+                    this._cb.Append(" ");
                     statement = (JsIfStatement)statement.Else.Statements[0];
                     goto redo;
                 }
                 else
-                    _cb.Append(_space);
+                    this._cb.Append(this._space);
             }
 
             if (statement.Else != null)
-                VisitStatement(statement.Else, addNewline);
+                this.VisitStatement(statement.Else, addNewline);
 
             return null;
         }
 
         public object VisitReturnStatement(JsReturnStatement statement, bool addNewline)
         {
-            _cb.Append("return");
+            this._cb.Append("return");
             if (statement.Value != null)
             {
-                _cb.Append(" ");
-                VisitExpression(statement.Value, false);
+                this._cb.Append(" ");
+                this.VisitExpression(statement.Value, false);
             }
-            _cb.Append(";");
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitSwitchStatement(JsSwitchStatement statement, bool addNewline)
         {
-            _cb.Append("switch").Append(_space + "(");
-            VisitExpression(statement.Expression, false);
-            _cb.Append(")" + _space);
-            _cb.Append("{").Indent();
-            _cb.AppendLine();
+            this._cb.Append("switch").Append(this._space + "(");
+            this.VisitExpression(statement.Expression, false);
+            this._cb.Append(")" + this._space);
+            this._cb.Append("{").Indent();
+            this._cb.AppendLine();
             foreach (var clause in statement.Sections)
             {
                 bool first = true;
                 foreach (var v in clause.Values)
                 {
                     if (!first)
-                        _cb.AppendLine();
+                        this._cb.AppendLine();
                     if (v != null)
                     {
-                        _cb.Append("case ");
-                        VisitExpression(v, false);
-                        _cb.Append(":");
+                        this._cb.Append("case ");
+                        this.VisitExpression(v, false);
+                        this._cb.Append(":");
                     }
                     else
                     {
-                        _cb.Append("default:");
+                        this._cb.Append("default:");
                     }
                     first = false;
                 }
-                _cb.Append(_space);
-                VisitStatement(clause.Body, true);
+                this._cb.Append(this._space);
+                this.VisitStatement(clause.Body, true);
             }
-            _cb.Outdent().Append("}");
+            this._cb.Outdent().Append("}");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitThrowStatement(JsThrowStatement statement, bool addNewline)
         {
-            _cb.Append("throw ");
-            VisitExpression(statement.Expression, false);
-            _cb.Append(";");
+            this._cb.Append("throw ");
+            this.VisitExpression(statement.Expression, false);
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitTryStatement(JsTryStatement statement, bool addNewline)
         {
-            _cb.Append("try" + _space);
-            VisitStatement(statement.GuardedStatement, true);
+            this._cb.Append("try" + this._space);
+            this.VisitStatement(statement.GuardedStatement, true);
             if (statement.Catch != null)
             {
-                _cb.Append("catch")
-                   .Append(_space + "(")
+                this._cb.Append("catch")
+                   .Append(this._space + "(")
                    .Append(statement.Catch.Identifier)
-                   .Append(")" + _space);
-                VisitStatement(statement.Catch.Body, addNewline || statement.Finally != null);
+                   .Append(")" + this._space);
+                this.VisitStatement(statement.Catch.Body, addNewline || statement.Finally != null);
             }
             if (statement.Finally != null)
             {
-                _cb.AppendFormat("finally" + _space);
-                VisitStatement(statement.Finally, addNewline);
+                this._cb.AppendFormat("finally" + this._space);
+                this.VisitStatement(statement.Finally, addNewline);
             }
             return null;
         }
 
         public object VisitVariableDeclarationStatement(JsVariableDeclarationStatement statement, bool addNewline)
         {
-            _cb.Append("var ");
+            this._cb.Append("var ");
             bool first = true;
             foreach (var d in statement.Declarations)
             {
                 if (!first)
-                    _cb.Append("," + _space);
-                _cb.Append(d.Name);
+                    this._cb.Append("," + this._space);
+                this._cb.Append(d.Name);
 
                 if (d.Type != null)
                 {
-                    _cb.Append(":" + _space);
+                    this._cb.Append(":" + this._space);
                     d.Type.Accept(this, addNewline);
                 }
 
                 if (d.Initializer != null)
                 {
-                    _cb.Append(_space + "=" + _space);
-                    VisitExpression(d.Initializer, false);
+                    this._cb.Append(this._space + "=" + this._space);
+                    this.VisitExpression(d.Initializer, false);
                 }
                 first = false;
             }
-            _cb.Append(";");
+            this._cb.Append(";");
             if (addNewline)
-                _cb.AppendLine();
+                this._cb.AppendLine();
             return null;
         }
 
         public object VisitWhileStatement(JsWhileStatement statement, bool addNewline)
         {
-            _cb.Append("while").Append(_space + "(");
-            VisitExpression(statement.Condition, false);
-            _cb.Append(")" + _space);
-            VisitStatement(statement.Body, addNewline);
+            this._cb.Append("while").Append(this._space + "(");
+            this.VisitExpression(statement.Condition, false);
+            this._cb.Append(")" + this._space);
+            this.VisitStatement(statement.Body, addNewline);
             return null;
         }
 
         public object VisitWithStatement(JsWithStatement statement, bool addNewline)
         {
-            _cb.Append("with").Append(_space + "(");
-            VisitExpression(statement.Object, false);
-            _cb.Append(")" + _space);
-            VisitStatement(statement.Body, addNewline);
+            this._cb.Append("with").Append(this._space + "(");
+            this.VisitExpression(statement.Object, false);
+            this._cb.Append(")" + this._space);
+            this.VisitStatement(statement.Body, addNewline);
             return null;
         }
 
         public object VisitLabelledStatement(JsLabelledStatement statement, bool addNewline)
         {
-            _cb.Append(statement.Label).Append(":");
-            _cb.AppendLine();
-            VisitStatement(statement.Statement, addNewline);
+            this._cb.Append(statement.Label).Append(":");
+            this._cb.AppendLine();
+            this.VisitStatement(statement.Statement, addNewline);
             return null;
         }
 
         public object VisitFunctionStatement(JsFunctionStatement statement, bool addNewline)
         {
-            _cb.Append("function " + statement.Name);
+            this._cb.Append("function " + statement.Name);
             FormatCallSignature(statement);
             if(statement.Body != null)
             {
-                VisitStatement(statement.Body, addNewline);
+                this.VisitStatement(statement.Body, addNewline);
             }
             else
             {
-                _cb.Append(";");
+                this._cb.Append(";");
             }
             return null;
         }
 
         public object VisitGotoStatement(JsGotoStatement statement, bool addNewline)
         {
-            if (!_allowIntermediates)
+            if (!this._allowIntermediates)
             {
                 throw new NotSupportedException("goto should not occur in the output stage");
             }
-            _cb.Append("goto ").Append(statement.TargetLabel).Append(";");
+            this._cb.Append("goto ").Append(statement.TargetLabel).Append(";");
             if (addNewline)
             {
-                _cb.AppendLine();
+                this._cb.AppendLine();
             }
             return null;
         }
 
         public object VisitYieldStatement(JsYieldStatement statement, bool addNewline)
         {
-            if (!_allowIntermediates)
+            if (!this._allowIntermediates)
                 throw new NotSupportedException("yield should not occur in the output stage");
             if (statement.Value != null)
             {
-                _cb.Append("yield return ");
-                VisitExpression(statement.Value, false);
-                _cb.Append(";");
+                this._cb.Append("yield return ");
+                this.VisitExpression(statement.Value, false);
+                this._cb.Append(";");
             }
             else
             {
-                _cb.Append("yield break;");
+                this._cb.Append("yield break;");
             }
             if (addNewline)
             {
-                _cb.AppendLine();
+                this._cb.AppendLine();
             }
             return null;
         }
 
         public object VisitAwaitStatement(JsAwaitStatement statement, bool addNewline)
         {
-            if (!_allowIntermediates)
+            if (!this._allowIntermediates)
             {
                 throw new NotSupportedException("await should not occur in the output stage");
             }
-            _cb.Append("await ");
-            VisitExpression(statement.Awaiter, false);
-            _cb.Append(":" + statement.OnCompletedMethodName + ";");
+            this._cb.Append("await ");
+            this.VisitExpression(statement.Awaiter, false);
+            this._cb.Append(":" + statement.OnCompletedMethodName + ";");
             if (addNewline)
             {
-                _cb.AppendLine();
+                this._cb.AppendLine();
             }
             return null;
         }
@@ -1269,7 +1276,7 @@ namespace TypeScriptModel
             {
                 this._cb.Append("static ");
             }
-            _cb.Append(tsClassMethodSignature.Name);
+            this._cb.Append(tsClassMethodSignature.Name);
             FormatCallSignature(tsClassMethodSignature);
             return null;
         }
@@ -1284,18 +1291,18 @@ namespace TypeScriptModel
             {
                 this._cb.Append("static ");
             }
-            _cb.Append(tsClassMemberDeclaration.VariableDeclaration.Name);
+            this._cb.Append(tsClassMemberDeclaration.VariableDeclaration.Name);
 
             if (tsClassMemberDeclaration.VariableDeclaration.Type != null)
             {
-                _cb.Append(":" + _space);
+                this._cb.Append(":" + this._space);
                 tsClassMemberDeclaration.VariableDeclaration.Type.Accept(this, addNewline);
             }
 
             if (tsClassMemberDeclaration.VariableDeclaration.Initializer != null)
             {
-                _cb.Append(_space + "=" + _space);
-                VisitExpression(tsClassMemberDeclaration.VariableDeclaration.Initializer, false);
+                this._cb.Append(this._space + "=" + this._space);
+                this.VisitExpression(tsClassMemberDeclaration.VariableDeclaration.Initializer, false);
             }
             this._cb.Append(";");
 
@@ -1319,10 +1326,10 @@ namespace TypeScriptModel
             }
             this._cb.Append("set ");
             this._cb.Append(tsClassSetAccessor.Name);
-            FormatParameterList(new List<TsParameter>{tsClassSetAccessor.Parameter});
+            this.FormatParameterList(new List<TsParameter>{tsClassSetAccessor.Parameter});
             if (tsClassSetAccessor.TypeAnnotation != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 tsClassSetAccessor.TypeAnnotation.Accept(this, false);
             }
             tsClassSetAccessor.Body.Accept(this, data);
@@ -1344,7 +1351,7 @@ namespace TypeScriptModel
             this._cb.Append("()");
             if (tsClassGetAccessor.TypeAnnotation != null)
             {
-                _cb.Append(": ");
+                this._cb.Append(": ");
                 tsClassGetAccessor.TypeAnnotation.Accept(this, false);
             }
             tsClassGetAccessor.Body.Accept(this, data);
@@ -1372,6 +1379,19 @@ namespace TypeScriptModel
         public object VisitImportDeclaration(TsImportDeclaration tsImportDeclaration, bool data)
         {
             this._cb.Append("import ").Append(tsImportDeclaration.Alias).Append(" = module(\"").Append(tsImportDeclaration.Module).Append("\");");
+            return null;
+        }
+
+        public object VisitNamespace(TsNamespace tsNamespace, bool data)
+        {
+            this._cb.Append("module ").Append(tsNamespace.Name);
+            this._cb.AppendLine(" {").Indent();
+            foreach (var e in tsNamespace.Elements)
+            {
+                e.Accept(this, false);
+                this._cb.AppendLine();
+            }
+            this._cb.Outdent().Append("}");
             return null;
         }
     }

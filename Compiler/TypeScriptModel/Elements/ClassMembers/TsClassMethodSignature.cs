@@ -4,6 +4,8 @@
     using System.Collections.Generic;
 
     using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
 
     public class TsClassMethodSignature : TsClassMember, IHasCallSignature
     {

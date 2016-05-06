@@ -1,8 +1,9 @@
-﻿using TypeScriptModel.TypeSystem;
-using TypeScriptModel.TypeSystem.Elements;
+﻿using TypeScriptModel.TypeSystem.Parameters;
 
 namespace TypeScriptModel.Visitors
 {
+    using TypeScriptModel.TypeSystem.Types;
+
     public interface ITypeVisitor<out TReturn, in TData>
     {
         TReturn VisitArrayType(TsArrayType type, TData data);

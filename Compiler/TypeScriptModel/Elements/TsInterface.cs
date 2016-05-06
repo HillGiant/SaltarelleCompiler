@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using TypeScriptModel.Visitors;
-using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Parameters;
 
 namespace TypeScriptModel.Elements
 {
+    using TypeScriptModel.TypeSystem.TypeMembers;
+    using TypeScriptModel.TypeSystem.Types;
+
     public class TsInterface: TsSourceElement
     {
         public string Name { get; private set; }

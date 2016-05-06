@@ -1,7 +1,8 @@
-﻿using TypeScriptModel.Visitors;
-
-namespace TypeScriptModel.TypeSystem
+﻿namespace TypeScriptModel.TypeSystem.Types
 {
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.Visitors;
+
     public enum TsPrimitive
     {
         Any,
@@ -31,7 +32,7 @@ namespace TypeScriptModel.TypeSystem
 
         private TsPrimitiveType(TsPrimitive primitive)
         {
-            Primitive = primitive;
+            this.Primitive = primitive;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeVisitor<TReturn, TData> visitor, TData data)

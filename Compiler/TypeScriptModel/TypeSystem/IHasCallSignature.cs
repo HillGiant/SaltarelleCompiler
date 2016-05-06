@@ -2,6 +2,9 @@
 {
     using System.Collections.Generic;
 
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
+
     // lolcat unintentional but hilarious
     public interface IHasCallSignature
     {

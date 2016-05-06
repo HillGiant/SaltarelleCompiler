@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using TypeScriptModel.Statements;
-using TypeScriptModel.TypeSystem;
+﻿using TypeScriptModel.Statements;
 using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.Elements.ClassMembers
 {
+    using TypeScriptModel.TypeSystem;
+
     public class TsClassMemberDeclaration : TsClassMember
     {
         public AccessibilityModifier? Accessibility;

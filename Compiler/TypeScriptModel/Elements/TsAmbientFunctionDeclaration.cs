@@ -1,8 +1,10 @@
-using System.Collections.Generic;
-
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.Elements
 {
-    using TypeScriptModel.Elements;
+    using System.Collections.Generic;
+
+    using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
     using TypeScriptModel.Visitors;
 
     public class TsAmbientFunctionDeclaration : TsSourceElement, IHasCallSignature
@@ -24,11 +26,11 @@ namespace TypeScriptModel.TypeSystem
             IList<TsParameter> parameters,
             TsType returnType)
         {
-            Name = name;
-            Optional = optional;
-            TypeParameters = typeParameters;
-            Parameters = parameters;
-            ReturnType = returnType;
+            this.Name = name;
+            this.Optional = optional;
+            this.TypeParameters = typeParameters;
+            this.Parameters = parameters;
+            this.ReturnType = returnType;
         }
 
         public TReturn Accept<TReturn, TData>(ISourceElementVisitor<TReturn, TData> visitor, TData data)

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace TypeScriptModel.Statements
 {
     using TypeScriptModel.ExtensionMethods;
     using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
     using TypeScriptModel.Visitors;
 
     [Serializable]

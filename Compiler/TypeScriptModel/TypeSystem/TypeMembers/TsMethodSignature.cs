@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.TypeSystem.TypeMembers
 {
+    using System.Collections.Generic;
+
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
     using TypeScriptModel.Visitors;
 
     public class TsMethodSignature : TsTypeMember, IHasCallSignature
@@ -22,11 +24,11 @@ namespace TypeScriptModel.TypeSystem
             IList<TsParameter> parameters,
             TsType returnType)
         {
-            Name = name;
-            Optional = optional;
-            TypeParameters = typeParameters;
-            Parameters = parameters;
-            ReturnType = returnType;
+            this.Name = name;
+            this.Optional = optional;
+            this.TypeParameters = typeParameters;
+            this.Parameters = parameters;
+            this.ReturnType = returnType;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeMemberVisitor<TReturn, TData> visitor, TData data)

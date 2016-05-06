@@ -2,12 +2,13 @@
 using Antlr.Runtime.Tree;
 using System.Collections.Generic;
 using TypeScriptModel.Statements;
-using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Parameters;
 using TypeScriptModel.Elements;
 using TypeScriptModel.Expressions;
 
 namespace TypeScriptParser
 {
+    using TypeScriptModel.TypeSystem.Types;
 
     public static class Parser
     {

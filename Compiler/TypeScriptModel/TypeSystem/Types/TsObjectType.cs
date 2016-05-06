@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.TypeSystem.Types
 {
+    using System.Collections.Generic;
+
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.TypeMembers;
     using TypeScriptModel.Visitors;
 
     public class TsObjectType : TsType
@@ -10,7 +12,7 @@ namespace TypeScriptModel.TypeSystem
 
         public TsObjectType(IEnumerable<TsTypeMember> members)
         {
-            Members = new List<TsTypeMember>(members).AsReadOnly();
+            this.Members = new List<TsTypeMember>(members).AsReadOnly();
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeVisitor<TReturn, TData> visitor, TData data)

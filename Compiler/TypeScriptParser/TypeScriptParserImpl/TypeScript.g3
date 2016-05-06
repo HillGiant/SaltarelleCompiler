@@ -715,7 +715,6 @@ memberExpression
 	: primaryExpression
 	| functionExpression
 	| newExpression
-        | arrowFunctionExpression
 	;
 
 newExpression
@@ -915,6 +914,10 @@ When it results in a Tree that is coming from a left hand side expression and th
 followed by the right recursive call.
 */
 assignmentExpression
+options
+{
+	backtrack = true ;
+}
 @init
 {
 	bool? isLhs = null;
@@ -1347,6 +1350,7 @@ options
 	k = 1 ;
 }
     : { input.LA(1) == FUNCTION }? functionDeclaration
+    | moduleDeclaration
     | ambientDeclaration
     | statement
     | interfaceDeclaration
@@ -1606,11 +1610,11 @@ extendsClause
 // $<   6 Classes
 
 classDeclaration
-	: CLASS identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? classElement*)
+	: CLASS identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? implementsClause? classElement*)
 	;
 	
 implementsClause	
-	: IMPLEMENTS identifier (COMMA identifier)*
+	: IMPLEMENTS typeReference (COMMA typeReference)* -> ^(IMPLEMENTS typeReference*)
 	;
 	
 classElement
@@ -1676,7 +1680,12 @@ enumMember
 // $<   8 Internal Modules
 
 moduleDeclaration
+options
+{
+	k = 2 ;
+}
 	: MODULE StringLiteral LBRACE (moduleElement)* RBRACE -> ^(MODULE StringLiteral moduleElement*)
+    | MODULE identifier LBRACE (moduleElement)* RBRACE -> ^(MODULE identifier moduleElement*)
 	;
 
 public moduleElement
@@ -1737,19 +1746,6 @@ ambientFunctionDeclaration
 	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? semic
 	-> ^( AMBIENTFUNCTION $name typeParameters? parameterList? typeAnnotation? )
 	;
-
-arrowFunctionExpression
-    : callSignature { PromoteEOL(null); } ARROW conciseBody
-    ;
-
-conciseBody
-options
-{
-	k = 1 ;
-}
-    : functionBody
-    | assignmentExpression
-    ;
 
 // $>
 

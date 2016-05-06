@@ -1,9 +1,10 @@
 using System;
-using TypeScriptModel.TypeSystem.Elements;
 using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.Statements
 {
+    using TypeScriptModel.TypeSystem;
+
     [Serializable]
     public abstract class JsStatement
     {

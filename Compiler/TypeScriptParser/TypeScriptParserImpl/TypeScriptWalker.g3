@@ -11,12 +11,14 @@ options
 
 @header {
 using System;
-using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Parameters;
 using TypeScriptModel.Expressions;
 using TypeScriptModel.Statements;
-using TypeScriptModel.TypeSystem.Elements;
 using TypeScriptModel.Elements;
 using TypeScriptModel.Elements.ClassMembers;
+using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.TypeMembers;
+using TypeScriptModel.TypeSystem.Types;
 using System.Globalization;
 }
 
@@ -121,6 +123,7 @@ public sourceElement returns [TsSourceElement result]
     | (e = interfaceElement)
     | (e = classElement)
     | (e = moduleElement)
+    | (e = namespaceElement)
     | (e = exportDeclaration)
     | (e = ambientDeclaration)
     | (e = ambientFunctionDeclaration)
@@ -501,9 +504,9 @@ parameterList returns [IList<TsParameter> result]
     ;
 
 parameter returns [TsParameter result]
-    @init { var optional = false; }
-    : ^(PARAM (name=identifier) (modifier = accessibilityModifier)? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
-    { $result = new TsParameter(name, a, optional, false, modifier);  }
+    @init { var optional = false; AccessibilityModifier? m = null; }
+    : ^(PARAM (name=identifier) (modifier = accessibilityModifier{m = modifier;})? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
+    { $result = new TsParameter(name, a, optional, false, m);  }
     ;
 
 accessibilityModifier returns [AccessibilityModifier result]
@@ -568,10 +571,16 @@ extendsClause returns [List<TsTypeReference> result]
     { $result = refs; }
     ;
 
+implementsClause returns [List<TsTypeReference> result]
+    @init { var refs = new List<TsTypeReference>(); }
+    : ^(IMPLEMENTS (t = typeReference{refs.Add((TsTypeReference)t);})*)
+    { $result = refs; }
+    ;
+
 classElement returns [TsSourceElement result]
     @init { var members = new List<TsClassMember>(); }
-    : ^(CLASS (i=identifier) (p=typeParameters)? (e=extendsClause)? ((m=classMember) { members.Add(m); })*)
-    { $result = new TsClass(i, p, e, members); }
+    : ^(CLASS (i=identifier) (p=typeParameters)? (e=extendsClause)? (imp=implementsClause)? ((m=classMember) { members.Add(m); })*)
+    { $result = new TsClass(i, p, e, imp, members); }
     ;
 
 classMember returns [TsClassMember result]
@@ -629,6 +638,12 @@ moduleElement returns [TsSourceElement result]
     @init { var elements = new List<TsSourceElement>(); }
     : ^(MODULE (i=StringLiteral) (e = sourceElement {elements.Add(e);})*)
     { $result = new TsModule($StringLiteral.Text.Substring(1, $StringLiteral.Text.Length - 2), elements); }
+    ;
+
+namespaceElement returns [TsSourceElement result]
+    @init { var elements = new List<TsSourceElement>(); }
+    : ^(MODULE (i=identifier) (e = sourceElement {elements.Add(e);})*)
+    { $result = new TsModule(i, elements); }
     ;
 
 exportDeclaration returns [TsSourceElement result]

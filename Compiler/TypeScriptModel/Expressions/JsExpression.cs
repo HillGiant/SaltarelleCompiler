@@ -5,7 +5,8 @@ using TypeScriptModel.Statements;
 using TypeScriptModel.Visitors;
 
 namespace TypeScriptModel.Expressions {
-    using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
 
     public enum ExpressionNodeType {
         ArrayLiteral,

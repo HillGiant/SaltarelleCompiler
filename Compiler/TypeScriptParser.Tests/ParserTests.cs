@@ -7,6 +7,8 @@ namespace TypeScriptParser.Tests
 {
     using System.IO;
 
+    using TypeScriptModel.TypeSystem;
+
     [TestFixture]
     public class ParserTests
     {
@@ -293,13 +295,6 @@ declare function myFunction();
         public void RoundtripAllNodeTypes() {
                 var source = File.ReadAllText("node.d.ts");
                 Roundtrip(source);
-        }
-
-        [Test]
-        public void RoundtripRaytracer()
-        {
-            var source = File.ReadAllText("raytracer.ts");
-            Roundtrip(source);
         }
     }
 }

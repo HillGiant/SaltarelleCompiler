@@ -1,5 +1,7 @@
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.TypeSystem.Parameters
 {
+    using TypeScriptModel.TypeSystem.Types;
+
     public class TsParameter
     {
         public string Name { get; private set; }

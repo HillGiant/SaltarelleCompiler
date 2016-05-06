@@ -2,6 +2,8 @@
 {
     using TypeScriptModel.Statements;
     using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
     using TypeScriptModel.Visitors;
 
     public class TsClassSetAccessor : TsClassMember

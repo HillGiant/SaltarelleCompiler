@@ -1,6 +1,7 @@
 ﻿namespace TypeScriptModel.Elements.ClassMembers
 {
-    using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.TypeMembers;
     using TypeScriptModel.Visitors;
 
     public class TsClassIndexSignature : TsClassMember

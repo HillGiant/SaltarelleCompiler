@@ -106,7 +106,6 @@
     <Compile Include="Statements\JsWithStatement.cs" />
     <Compile Include="Statements\JsYieldStatement.cs" />
     <Compile Include="TypeSystem\AccessibilityModifier.cs" />
-    <Compile Include="Elements\TsAmbient.cs" />
     <Compile Include="Elements\TsClass.cs" />
     <Compile Include="Elements\TsEnum.cs" />
     <Compile Include="Elements\TsNamespace.cs" />

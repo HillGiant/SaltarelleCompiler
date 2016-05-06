@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-
-namespace TypeScriptModel.TypeSystem
+namespace TypeScriptModel.TypeSystem.Types
 {
+    using System.Collections.Generic;
+
+    using TypeScriptModel.TypeSystem.Parameters;
     using TypeScriptModel.Visitors;
 
     public class TsConstructorType : TsType, IHasCallSignature
@@ -12,9 +13,9 @@ namespace TypeScriptModel.TypeSystem
 
         public TsConstructorType(IList<TsTypeParameter> typeParameters, IList<TsParameter> parameters, TsType returnType)
         {
-            TypeParameters = typeParameters;
-            Parameters = parameters;
-            ReturnType = returnType;
+            this.TypeParameters = typeParameters;
+            this.Parameters = parameters;
+            this.ReturnType = returnType;
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeVisitor<TReturn, TData> visitor, TData data)

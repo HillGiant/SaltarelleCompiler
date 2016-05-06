@@ -6,7 +6,9 @@
 
     using TypeScriptModel;
     using TypeScriptModel.Elements;
-    using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.TypeMembers;
+    using TypeScriptModel.TypeSystem.Types;
 
     [TestFixture]
     public class ElementTests

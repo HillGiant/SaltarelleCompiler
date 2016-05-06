@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
-using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Parameters;
 using TypeScriptModel.Visitors;
+using TypeScriptModel.TypeSystem;
 
 namespace TypeScriptModel.Elements.ClassMembers
 {
+
     public class TsClassConstructorSignature
     {
         public AccessibilityModifier? Accessibility;

@@ -1,11 +1,10 @@
 ﻿namespace TypeScriptParser.Tests
 {
-    using System;
-
     using NUnit.Framework;
-
-    using TypeScriptModel;
     using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.TypeMembers;
+    using TypeScriptModel.TypeSystem.Types;
 
     [TestFixture]
     public class TypeTests

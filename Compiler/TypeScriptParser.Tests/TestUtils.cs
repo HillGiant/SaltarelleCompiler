@@ -9,6 +9,8 @@ using TypeScriptModel.Elements;
 
 namespace TypeScriptParser.Tests
 {
+    using TypeScriptModel.TypeSystem;
+
     static class TestUtils
     {
         public static T ParseElement<T>(string source) where T : TsSourceElement

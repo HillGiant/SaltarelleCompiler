@@ -1,8 +1,11 @@
-﻿namespace TypeScriptModel.Elements.ClassMembers
+﻿using TypeScriptModel.Statements;
+using TypeScriptModel.TypeSystem;
+using TypeScriptModel.TypeSystem.Parameters;
+using TypeScriptModel.Visitors;
+
+namespace TypeScriptModel.Elements.ClassMembers
 {
-    using TypeScriptModel.Statements;
-    using TypeScriptModel.TypeSystem;
-    using TypeScriptModel.Visitors;
+    using TypeScriptModel.TypeSystem.Types;
 
     public class TsClassGetAccessor : TsClassMember
     {

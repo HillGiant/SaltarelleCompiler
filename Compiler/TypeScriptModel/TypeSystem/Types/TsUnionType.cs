@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using TypeScriptModel.Visitors;
-
-namespace TypeScriptModel.TypeSystem
+﻿namespace TypeScriptModel.TypeSystem.Types
 {
+    using System.Collections.Generic;
+
+    using TypeScriptModel.Visitors;
 
     public class TsUnionType : TsType
     {
@@ -10,7 +10,7 @@ namespace TypeScriptModel.TypeSystem
 
         public TsUnionType(IEnumerable<TsType> types)
         {
-            Types = new List<TsType>(types).AsReadOnly();
+            this.Types = new List<TsType>(types).AsReadOnly();
         }
 
         public override TReturn Accept<TReturn, TData>(ITypeVisitor<TReturn, TData> visitor, TData data)

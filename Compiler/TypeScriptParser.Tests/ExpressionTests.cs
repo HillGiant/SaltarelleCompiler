@@ -6,6 +6,7 @@
 
     using TypeScriptModel;
     using TypeScriptModel.Expressions;
+    using TypeScriptModel.TypeSystem;
 
     [TestFixture]
     public class ExpressionTests

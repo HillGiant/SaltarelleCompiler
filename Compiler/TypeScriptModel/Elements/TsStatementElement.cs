@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using TypeScriptModel.Visitors;
-using System.Linq;
-using System.Text;
 using TypeScriptModel.Statements;
 
 namespace TypeScriptModel.Elements

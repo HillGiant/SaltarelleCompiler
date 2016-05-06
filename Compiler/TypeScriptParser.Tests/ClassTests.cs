@@ -1,12 +1,14 @@
 ﻿using NUnit.Framework;
 using System.Linq;
-using TypeScriptModel.TypeSystem.Elements;
 
 namespace TypeScriptParser.Tests
 {
+    using TypeScriptModel.Elements;
     using TypeScriptModel.Elements.ClassMembers;
     using TypeScriptModel.Statements;
     using TypeScriptModel.TypeSystem;
+    using TypeScriptModel.TypeSystem.Parameters;
+    using TypeScriptModel.TypeSystem.Types;
 
     [TestFixture]
     public class ClassTests
@@ -37,6 +39,22 @@ namespace TypeScriptParser.Tests
             Assert.That(type.Name, Is.EqualTo("foo"));
             Assert.That(type.Extends.Count, Is.EqualTo(1));
             Assert.That(type.Extends[0].Name, Is.EqualTo("bar"));
+            Assert.That(type.TypeParameters, Is.Null);
+            Assert.That(type.Members.Count, Is.EqualTo(0));
+            TestUtils.SerializedTypeMatchesInput(input, type);
+        }
+
+        [Test]
+        public void ClassWithImplements()
+        {
+            var input =
+@"class foo implements bar {
+}
+";
+            var type = TestUtils.ParseElement<TsClass>(input);
+            Assert.That(type.Name, Is.EqualTo("foo"));
+            Assert.That(type.Implements.Count, Is.EqualTo(1));
+            Assert.That(type.Implements[0].Name, Is.EqualTo("bar"));
             Assert.That(type.TypeParameters, Is.Null);
             Assert.That(type.Members.Count, Is.EqualTo(0));
             TestUtils.SerializedTypeMatchesInput(input, type);
@@ -218,6 +236,33 @@ namespace TypeScriptParser.Tests
             Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
             Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
             Assert.That(constSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            var parameterType = constSig.Parameters[0].Type as TsPrimitiveType;
+            Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
+            Assert.That(constSig.Parameters[0].Optional, Is.False);
+
+            TestUtils.SerializedTypeMatchesInput(input, type);
+        }
+
+        [Test]
+        public void ConstructorSignatureWithParameterWithAccessibilityModifier()
+        {
+            var input =
+@"class foo {
+    public constructor(public foo: string){
+    }
+}
+";
+            var type = TestUtils.ParseElement<TsClass>(input);
+            Assert.That(type.Members.Count, Is.EqualTo(1));
+            Assert.That(type.Members[0], Is.TypeOf<TsConstructorDeclaration>());
+
+            var constructor = type.Members[0] as TsConstructorDeclaration;
+            Assert.That(constructor.Signatures.Count, Is.EqualTo(1));
+            var constSig = constructor.Signatures.First();
+            Assert.That(constSig.Parameters.Count, Is.EqualTo(1));
+            Assert.That(constSig.Parameters[0].Name, Is.EqualTo("foo"));
+            Assert.That(constSig.Parameters[0].Type, Is.TypeOf<TsPrimitiveType>());
+            Assert.That(constSig.Parameters[0].Modifier, Is.EqualTo(AccessibilityModifier.Public));
             var parameterType = constSig.Parameters[0].Type as TsPrimitiveType;
             Assert.That(parameterType.Primitive, Is.EqualTo(TsPrimitive.String));
             Assert.That(constSig.Parameters[0].Optional, Is.False);
