@@ -218,7 +218,7 @@ namespace Saltarelle.Compiler.Compiler {
 				return new List<JsStatement> { JsStatement.Empty };
 			try {
 				var stmts = JavaScriptParser.Parser.ParseProgram(textAndSubstitution.Item1);
-				return new Substituter(textAndSubstitution.Item2, errorReporter).Process(stmts);
+				return new Substituter(textAndSubstitution.Item2, errorReporter).Process(stmts.Select(s => (JsStatement)s).ToList());
 			}
 			catch (RecognitionException) {
 				errorReporter("syntax error in inline code");

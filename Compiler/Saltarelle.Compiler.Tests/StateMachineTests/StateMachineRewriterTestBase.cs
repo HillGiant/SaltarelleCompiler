@@ -7,6 +7,7 @@ using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.StateMachineRewrite;
 using Saltarelle.Compiler.JSModel.Statements;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.StateMachineTests {
 	public enum MethodType {

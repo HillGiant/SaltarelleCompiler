@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using ICSharpCode.NRefactory.TypeSystem;
 using NUnit.Framework;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 
 namespace CoreLib.Tests.OOPEmulatorTests {
 	[TestFixture]

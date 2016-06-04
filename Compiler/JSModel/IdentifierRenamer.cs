@@ -51,7 +51,7 @@ namespace Saltarelle.Compiler.JSModel {
 			if (!_renames.TryGetValue(expression, out newData))
 				newData = data;
 			bool renamed = false;
-			var paramNames = expression.ParameterNames.Select(n => { string s; if (newData.TryGetValue(n, out s)) { renamed = true; return s; } else return n; }).ToList();
+			var paramNames = expression.Parameters.Select(p => { string s; if (newData.TryGetValue(p.Name, out s)) { renamed = true; return s; } else return p.Name; }).ToList();
 			if (renamed)
 				return JsExpression.FunctionDefinition(paramNames, VisitStatement(expression.Body, newData), expression.Name);
 			else
@@ -63,7 +63,7 @@ namespace Saltarelle.Compiler.JSModel {
 			if (!_renames.TryGetValue(statement, out newData))
 				newData = data;
 			bool renamed = false;
-			var paramNames = statement.ParameterNames.Select(n => { string s; if (newData.TryGetValue(n, out s)) { renamed = true; return s; } else return n; }).ToList();
+                        var paramNames = statement.Parameters.Select(p => { string s; if (newData.TryGetValue(p.Name, out s)) { renamed = true; return s; } else return p.Name; }).ToList();
 			if (renamed)
 				return JsStatement.Function(statement.Name, paramNames, VisitStatement(statement.Body, newData));
 			else

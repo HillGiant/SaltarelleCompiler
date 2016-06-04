@@ -1,26 +1,26 @@
-/*
-
-Copyrights 2008-2009 Xebic Reasearch BV. All rights reserved (see license.txt).
-Original work by Patrick Hulsmeijer.
-
-*/
-
 tree grammar ES3Walker ;
 
 options
 {
 	ASTLabelType = CommonTree ;
 	tokenVocab = ES3 ;
+	k = 4;
 }
+
+@namespace { Xebic.Parsers.ES3 }
 
 @header {
 using System;
+using TypeScriptModel.TypeSystem;
 using Saltarelle.Compiler.JSModel.Statements;
 using Saltarelle.Compiler.JSModel.Expressions;
+using TypeScriptModel.TypeSystem.Elements;
+using TypeScriptModel.Elements;
+using TypeScriptModel.Elements.ClassMembers;
 using System.Globalization;
 }
 
-@members {
+@members {	
 	public override void ReportError(RecognitionException e) { throw e; }
 
 	public string UnescapeStringLiteral(string orig) {
@@ -110,15 +110,32 @@ using System.Globalization;
 	}
 }
 
-public program returns [IList<JsStatement> result]
-@init { $result = new List<JsStatement>(); }
-	: (s = statement { $result.Add(s); })*
+public program returns [IList<TsSourceElement> result]
+@init { $result = new List<TsSourceElement>(); }
+	: (s = sourceElement { $result.Add(s); })*
 	;
+
+public sourceElement returns [TsSourceElement result]
+    : ((e = statementElement)
+    | (e = interfaceElement)
+    | (e = classElement)
+    | (e = moduleElement)
+    | (e = exportDeclaration)
+    | (e = ambientDeclaration)
+    | (e = ambientFunctionDeclaration)
+    | (e = importDeclaration))
+    { $result = e; }
+    ;
+
+public statementElement returns [TsSourceElement result]
+    : s = statement
+    { $result = new TsStatementElement(s); }
+    ;
 
 public statement returns [JsStatement result]
 	: (x=block
 	| x=variableDeclaration
-	| e=expression { x = e; }
+	| e=expression { x = new JsExpressionStatement(e); }
 	| x=ifStatement
 	| x=doStatement
 	| x=whileStatement
@@ -132,23 +149,23 @@ public statement returns [JsStatement result]
 	| x=throwStatement
 	| x=tryStatement
 	| x=functionDeclaration
-	| x=debuggerStatement
 	| x=gotoStatement
 	| x=yieldStatement
 	| x=awaitStatement
-	| SEMIC { x = JsStatement.Empty; } )
+	| SEMIC { x = new JsEmptyStatement(); } )
 	{ $result = x; }
 	;
 
 block returns [JsStatement result]
 @init { var stmts = new List<JsStatement>(); }
 	: ^( BLOCK (s=statement { stmts.Add(s); })* )
-	{ $result = JsStatement.Block(stmts); }
+	{ $result = new JsBlockStatement(stmts); }
 	;
 
 variableDeclaration returns [JsStatement result]
 @init { var vars = new List<JsVariableDeclaration>(); }
-	: ^( VAR ( i=Identifier { vars.Add(JsStatement.Declaration(i.Text, null)); } | ^( ASSIGN i=Identifier x=expr { vars.Add(JsStatement.Declaration(i.Text, x)); } ) )+ ) { $result = JsStatement.Var(vars); }
+	: ^( VAR ((i=identifier a=typeAnnotation? (ASSIGN e=expression)?) { vars.Add(new JsVariableDeclaration(i, e, a)); })+)
+    { $result = new JsVariableDeclarationStatement(vars); }
 	;
 
 ifStatement returns [JsStatement result]
@@ -167,8 +184,8 @@ forStatement returns [JsStatement result]
 	: ^(
 	FOR 
 	(
-		  ( ^( FORSTEP { JsStatement init = null; } ( x=exprOptClause { init = x != null ? (JsStatement)x : JsStatement.Empty; } | d=variableDeclaration { init = d; } ) x=exprOptClause y=exprOptClause ) s=statement { $result = JsStatement.For(init, x, y, s); } )
-		| ( ^( FORITER { bool isDeclared = false; } ( ^( EXPR i=Identifier ) | ^( VAR i=Identifier { isDeclared = true; } ) ) x=exprClause ) s=statement { $result = JsStatement.ForIn(i.Text, x, s, isDeclared); } )
+		  ( ^( FORSTEP { JsStatement init = null; } ( x=exprOptClause { init = x != null ? (JsStatement)new JsExpressionStatement(x) : new JsEmptyStatement(); } | d=variableDeclaration { init = d; } ) x=exprOptClause y=exprOptClause ) s=statement { $result = new JsForStatement(init, x, y, s); } )
+		| ( ^( FORITER { bool isDeclared = false; } ( ^( EXPR i=identifier ) | ^( VAR i=identifier { isDeclared = true; } ) ) x=exprClause ) s=statement { $result = new JsForEachInStatement(i, x, s, isDeclared); } )
 	)
 	);
 
@@ -228,7 +245,7 @@ tryStatement returns [JsStatement result]
 	;
 	
 catchClause returns [JsCatchClause result]
-	: ^( CATCH Identifier b=block ) { $result = JsStatement.Catch($Identifier.Text, b); }
+	: ^( CATCH i=identifier b=block ) { $result = JsStatement.Catch(i, b); }
 	;
 	
 finallyClause returns [JsStatement result]
@@ -240,7 +257,7 @@ debuggerStatement returns [JsStatement result]
 	;
 
 gotoStatement returns [JsStatement result]
-	: ^( GOTO Identifier ) { $result = JsStatement.Goto($Identifier.Text); }
+	: ^( GOTO i=identifier ) { $result = JsStatement.Goto(i); }
 	;
 
 yieldStatement returns [JsStatement result]
@@ -248,7 +265,7 @@ yieldStatement returns [JsStatement result]
 	;
 
 awaitStatement returns [JsStatement result]
-	: ^( AWAIT x=expression y=Identifier ) { $result = JsStatement.Await(x, y.Text); }
+	: ^( AWAIT x=expression y=identifier ) { $result = JsStatement.Await(x, y); }
 	;
 
 public expression returns [JsExpression result]
@@ -344,26 +361,27 @@ newExpression returns [JsExpression result]
 
 functionExpression returns [JsExpression result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTION i=Identifier? ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) b=block ) { $result = JsExpression.FunctionDefinition(parms, b, i != null ? i.Text : null); }
+	: ^( FUNCTION i=identifier? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block) ) { $result = JsExpression.FunctionDefinition(typeParams, parameters, b, i != null ? i : null, annotation); }
 	;
 
 functionDeclaration returns [JsStatement result]
 @init { var parms = new List<string>(); }
-	: ^( FUNCTIONDECLARATION i=Identifier ^( ARGS (p=Identifier { parms.Add(p.Text); })* ) b=block ) { $result = JsStatement.Function(i.Text, parms, b); }
+	: ^( FUNCTIONDECLARATION i=identifier (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)? (b=block)? ) { $result = new JsFunctionStatement(typeParams, parameters, i, b, annotation); }
 	;
 
 callExpression returns [JsExpression result]
 @init { var args = new List<JsExpression>(); }
-	: ^( CALL t=leftHandSideExpression ^( ARGS (a=expr { args.Add(a); })* ) ) { $result = JsExpression.Invocation(t, args); }
+	: ^( CALL ^( NEW t=leftHandSideExpression ) ^( ARGS (a=expr { args.Add(a); })* ) ) { $result = JsExpression.New(t, args); }
+	| ^( CALL t=leftHandSideExpression ^( ARGS (a=expr { args.Add(a); })* ) ) { $result = JsExpression.Invocation(t, args); }
 	;
 	
 memberExpression returns [JsExpression result]
 	: ^( BYINDEX a=leftHandSideExpression b=expression { $result = JsExpression.Index(a, b); } )
-	| ^( BYFIELD a=leftHandSideExpression Identifier { $result = JsExpression.MemberAccess(a, $Identifier.Text); } )
+	| ^( BYFIELD a=leftHandSideExpression i=identifier { $result = JsExpression.MemberAccess(a, i); } )
 	;
 
 primaryExpression returns [JsExpression result]
-	: Identifier { $result = JsExpression.Identifier($Identifier.Text); }
+	: i=identifier { $result = JsExpression.Identifier(i); }
 	| x=literal { $result = x; }
 	| ^(PAREXPR x=expression { $result = x; })
 	;
@@ -401,7 +419,261 @@ objectLiteral returns [JsExpression result]
 	;
 
 propertyName returns [ string result ]
-	: Identifier       { $result = $Identifier.Text; }
+	: i=identifier       { $result = i; }
 	| StringLiteral	   { $result = $StringLiteral.Text.Substring(1, $StringLiteral.Text.Length - 2); }
 	| x=numericLiteral { $result = ((JsConstantExpression)x).NumberValue.ToString(CultureInfo.InvariantCulture); }
 	;
+
+public type returns [TsType result]
+    : (( t=typeReference )
+    |  ( t=primitiveType )
+    |  ( t=objectType )
+    |  ( t=constructorType )
+    |  ( t=functionType )
+    |  ( t=tupleType ))
+    (ARRAY_TYPE {t= new TsArrayType(t);})*
+	{ $result = t; }
+	;
+
+typeReference returns [TsType result]
+    : ^( TYPEREF n=identifier args=typeArguments? ) 
+    { $result = new TsTypeReference(n, args); }
+	;
+
+typeArguments returns [IList<TsType> result]
+    @init { var args = new List<TsType>(); }
+	: ^( TYPE_ARGS (a=type { args.Add(a); })* )
+    { $result = args; }
+    ;
+
+primitiveType returns [TsType result]
+    : (ANY) {$result = TsPrimitiveType.Any; }
+    | (NUMBER) {$result = TsPrimitiveType.Number; }
+    | (BOOLEAN) {$result = TsPrimitiveType.Boolean; }
+    | (STRING) {$result = TsPrimitiveType.String; }
+    | (VOID) {$result = TsPrimitiveType.Void; }
+    ;
+
+objectType returns [TsType result]
+    @init { var members = new List<TsTypeMember>(); }
+    : ^(OBJECT_TYPE (m=typeMember { members.Add(m); })*)
+    { $result = new TsObjectType(members); }
+    ;
+
+typeMember returns [TsTypeMember result]
+    : (( m=propertySignature )
+    | (m = callSignature)
+    | (m = indexSignature)
+    | (m = methodSignature)
+    | (m = constructSignature)
+    )
+    { $result = m; }
+    ;
+
+propertySignature returns [TsTypeMember result]
+    @init { bool optional = false; }
+    : ^(PROP_SIG n=propertyName (QUE {optional = true;})? a=typeAnnotation?)
+	{ $result = new TsPropertySignature(n, a, optional); }
+	;
+
+typeAnnotation returns [TsType result]
+    : ^(COLON t=type)
+	{ $result = t; }
+    ;
+
+callSignature returns [TsTypeMember result]
+    : ^(CALL_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+	{ $result = new TsCallSignature(typeParams, parameters, annotation); }
+	;
+
+typeParameters returns [IList<TsTypeParameter> result]
+    @init { var parameters = new List<TsTypeParameter>(); }
+    : ^(TYPE_PARAMS (t= typeParameter {parameters.Add(t);})*)
+    { $result = parameters; }
+    ;
+
+typeParameter returns [TsTypeParameter result]
+    : ^((i = identifier) (c = typeConstraint)?)
+    { $result = new TsTypeParameter(i, c);  }
+    ;
+
+typeConstraint returns [TsType result]
+    : ^(EXTENDS (t=type))
+    { $result = t;  }
+    ;
+
+parameterList returns [IList<TsParameter> result]
+    @init { var parameters = new List<TsParameter>(); }
+    : (^(PARAMS (p=parameter {parameters.Add(p);})* (r=restParameter {parameters.Add(r);})?)
+    | (r=restParameter {parameters.Add(r);}))
+    { $result = parameters;  }
+    ;
+
+parameter returns [TsParameter result]
+    @init { var optional = false; }
+    : ^(PARAM (name=identifier) (modifier = accessibilityModifier)? (QUE {optional = true;})? (a=typeAnnotation)?  (x=expr)?)
+    { $result = new TsParameter(name, a, optional, false, modifier);  }
+    ;
+
+accessibilityModifier returns [AccessibilityModifier result]
+    : (PUBLIC) {$result = AccessibilityModifier.Public; }
+    | (PRIVATE) {$result = AccessibilityModifier.Private; }
+    | (PROTECTED) {$result = AccessibilityModifier.Protected; }
+    ;
+
+restParameter returns [TsParameter result]
+    : ^(ELLIPSIS (n=identifier) (a=typeAnnotation)?)
+    { $result = new TsParameter(n, a, false, true, null);  }
+    ;
+
+indexSignature returns [TsTypeMember result]
+    @init { TsPrimitiveType parameterType = null; }
+    :^(INDEX_SIG (n=identifier) ((STRING {parameterType = TsPrimitiveType.String;}) | (NUMBER{parameterType = TsPrimitiveType.Number;})) (a=typeAnnotation))
+    {$result = new TsIndexSignature(n, parameterType, a);}
+    ;
+
+methodSignature returns [TsTypeMember result]
+    @init { bool optional = false; }
+    :^(METH_SIG p=propertyName (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    {$result = new TsMethodSignature(p, optional, typeParams, parameters, annotation);}
+    ;
+
+ambientFunctionDeclaration returns [TsSourceElement result]
+    @init { bool optional = false; }
+    :^(AMBIENTFUNCTION i=identifier (QUE {optional = true;})? (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    {$result = new TsAmbientFunctionDeclaration(i, optional, typeParams, parameters, annotation);}
+    ;
+
+constructSignature returns [TsTypeMember result]
+    :^(CONST_SIG (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    {$result = new TsConstructSignature(typeParams, parameters, annotation);}
+    ;
+
+functionType returns [TsType result]
+    : ^(FUNC_TYPE (typeParams = typeParameters)? (parameters = parameterList)? (t = type)?)
+    { $result = new TsFunctionType(typeParams, parameters, t); }
+    ;
+
+constructorType returns [TsType result]
+    : ^(CONST_TYPE (typeParams = typeParameters)? (parameters = parameterList)? (t = type)?)
+    { $result = new TsConstructorType(typeParams, parameters, t); }
+    ;
+
+tupleType returns [TsType result]
+    @init { List<TsType> types = new List<TsType>(); }
+    : ^(TUPLE_TYPE (t = type {types.Add(t);})*)
+    { $result = new TsTupleType(types); }
+    ;
+
+interfaceElement returns [TsSourceElement result]
+    @init { var members = new List<TsTypeMember>(); }
+    : ^(INTERFACE i=identifier p=typeParameters? e=extendsClause? (m=typeMember { members.Add(m); })*)
+    { $result = new TsInterface(i, p, e, members); }
+    ;
+
+extendsClause returns [List<TsTypeReference> result]
+    @init { var refs = new List<TsTypeReference>(); }
+    : ^(EXTENDS (t = typeReference{refs.Add((TsTypeReference)t);})*)
+    { $result = refs; }
+    ;
+
+classElement returns [TsSourceElement result]
+    @init { var members = new List<TsClassMember>(); }
+    : ^(CLASS (i=identifier) (p=typeParameters)? (e=extendsClause)? ((m=classMember) { members.Add(m); })*)
+    { $result = new TsClass(i, p, e, members); }
+    ;
+
+classMember returns [TsClassMember result]
+    : ((m = constructorDeclaration)
+    |  (m = methodDeclaration)
+    |  (m = classIndexSignature)
+    |  (m = getAccessor)
+    |  (m = setAccessor)
+    |  (m = memberVariableDeclaration))
+    { $result = m; }
+    ;
+
+constructorDeclaration returns [TsClassMember result]
+    @init { var signatures = new List<TsClassConstructorSignature>(); }
+    : ^(CONST_DECL (s = constructorCallSignature { signatures.Add(s);})* (f = block))
+    { $result = new TsConstructorDeclaration(signatures, f);}
+    ;
+
+constructorCallSignature returns [TsClassConstructorSignature result]
+    @init { AccessibilityModifier? accessibility = null; }
+    : ^(CONST_SIG (a=accessibilityModifier {accessibility = a;})? (parameters = parameterList)?)
+    { $result = new TsClassConstructorSignature(accessibility, parameters);}
+    ;
+
+methodDeclaration returns [TsClassMember result]
+    @init { var signatures = new List<TsClassMethodSignature>(); }
+    : ^(METH_DECL (s = methodCallSignature { signatures.Add(s);})* (f = block))
+    { $result = new TsMethodDeclaration(signatures, f);}
+    ;
+
+methodCallSignature returns [TsClassMethodSignature result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(METH_SIG (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (typeParams = typeParameters)? (parameters = parameterList)? (annotation = typeAnnotation)?)
+    { $result = new TsClassMethodSignature(accessibility, s, i, parameters, typeParams, annotation);}
+    ;
+
+classIndexSignature returns [TsClassMember result]
+    : ((s = indexSignature))
+    { $result = new TsClassIndexSignature((TsIndexSignature)s);}
+    ;
+
+getAccessor returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(GET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassGetAccessor(accessibility, s, i, annotation, f); }
+    ;
+
+setAccessor returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^(SET (a=accessibilityModifier {accessibility = a;})? (STATIC {s = true;})? (i=identifier) (p = parameter) (annotation = typeAnnotation)? (f = block))
+    { $result = new TsClassSetAccessor(accessibility, s, i, p, annotation, f); }
+    ;
+
+moduleElement returns [TsSourceElement result]
+    @init { var elements = new List<TsSourceElement>(); }
+    : ^(MODULE (i=StringLiteral) (e = sourceElement {elements.Add(e);})*)
+    { $result = new TsModule($StringLiteral.Text.Substring(1, $StringLiteral.Text.Length - 2), elements); }
+    ;
+
+exportDeclaration returns [TsSourceElement result]
+    : ^(EXPORT  (e = sourceElement))
+    { $result = new TsExportElement(e); }
+    ;
+
+ambientDeclaration returns [TsSourceElement result]
+    : ^(DECLARE  (e = sourceElement))
+    { $result = new TsAmbientDeclaration(e); }
+    ;
+
+identifier returns [string result]
+    : (x= ANY
+    | x= CONSTRUCTOR
+    | x= DECLARE
+    | x= GET
+    | x= SET
+    | x= MODULE
+    | x= REQUIRE
+    | x= NUMBER
+    | x= STRING
+    | x= TYPE
+    | x= FINAL
+    | x= THROWS
+    | x= Identifier)
+    { $result = x.Text; }
+    ;
+
+importDeclaration returns [TsSourceElement result]
+    : ^(IMPORT a = identifier m = StringLiteral)
+    { $result = new TsImportDeclaration(a,m.Text.Substring(1, m.Text.Length - 2)); }
+    ;
+
+memberVariableDeclaration returns [TsClassMember result]
+    @init { AccessibilityModifier? accessibility = null; bool s = false; }
+    : ^( VAR (a=accessibilityModifier {accessibility = a;})? (STATIC { s=true;})? i=identifier ann=typeAnnotation? (ASSIGN e=expression)?)
+    { $result = new TsClassMemberDeclaration(accessibility,s,new JsVariableDeclaration(i, e, ann)); }
+    ;

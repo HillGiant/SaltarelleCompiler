@@ -42,9 +42,9 @@
     <Reference Include="Saltarelle.Compiler">
       <HintPath>..\..\Compiler\Saltarelle.Compiler\bin\Saltarelle.Compiler.dll</HintPath>
     </Reference>
-    <Reference Include="Saltarelle.Compiler.JSModel">
-      <HintPath>..\..\Compiler\Saltarelle.Compiler\bin\Saltarelle.Compiler.JSModel.dll</HintPath>
-    </Reference>
+      <Reference Include="TypeScriptModel">
+          <HintPath>..\..\Compiler\JSModel\bin\Saltarelle.Compiler.JSModel.dll</HintPath>
+      </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

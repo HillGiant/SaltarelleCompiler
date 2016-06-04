@@ -2,6 +2,7 @@
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.ScriptSemantics;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.CompilerTests.MethodCompilation {
 	[TestFixture]

@@ -123,7 +123,7 @@ namespace Saltarelle.Compiler.Compiler {
 			                                                    () => { var result = _namer.GetVariableName(_namer.StateVariableDesiredName, _usedVariableNames); _usedVariableNames.Add(result); return result; },
 			                                                    () => { var result = _namer.GetStateMachineLoopLabel(usedLoopLabels); usedLoopLabels.Add(result); return result; });
 
-			return ReferenceEquals(body, function.Body) ? function : JsExpression.FunctionDefinition(function.ParameterNames, body, function.Name);
+			return ReferenceEquals(body, function.Body) ? function : JsExpression.FunctionDefinition(function.Parameters.Select(p => p.Name).ToList(), body, function.Name);
 		}
 
 		private JsFunctionDefinitionExpression StateMachineRewriteIteratorBlock(JsFunctionDefinitionExpression function, bool returnsIEnumerable, IType yieldType) {
@@ -140,9 +140,9 @@ namespace Saltarelle.Compiler.Compiler {
 			                                                     () => { var result = _namer.GetStateMachineLoopLabel(usedLoopLabels); usedLoopLabels.Add(result); return result; },
 			                                                     () => { var result = _namer.GetVariableName(_namer.FinallyHandlerDesiredName, _usedVariableNames); _usedVariableNames.Add(result); return result; },
 			                                                     x => JsExpression.Assign(JsExpression.Identifier(yieldResultVariable), x),
-			                                                     sm => MakeIteratorBody(sm, returnsIEnumerable, yieldType, yieldResultVariable, function.ParameterNames));
+			                                                     sm => MakeIteratorBody(sm, returnsIEnumerable, yieldType, yieldResultVariable, function.Parameters.Select(p => p.Name).ToList()));
 
-			return JsExpression.FunctionDefinition(function.ParameterNames, body, function.Name);
+			return JsExpression.FunctionDefinition(function.Parameters.Select(p => p.Name).ToList(), body, function.Name);
 		}
 
 		private JsFunctionDefinitionExpression StateMachineRewriteAsyncMethod(JsFunctionDefinitionExpression function, bool returnsTask, IType taskGenericArgument) {
@@ -176,7 +176,7 @@ namespace Saltarelle.Compiler.Compiler {
 			                                                   taskCompletionSourceVariable != null ? () => _runtimeLibrary.GetTaskFromTaskCompletionSource(JsExpression.Identifier(taskCompletionSourceVariable), this) : (Func<JsExpression>)null,
 			                                                   (f, t) => _runtimeLibrary.Bind(f, t, this));
 
-			return ReferenceEquals(body, function.Body) ? function : JsExpression.FunctionDefinition(function.ParameterNames, body, function.Name);
+			return ReferenceEquals(body, function.Body) ? function : JsExpression.FunctionDefinition(function.Parameters.Select(p => p.Name).ToList(), body, function.Name);
 		}
 
 		private bool IsMutableValueType(IType type) {

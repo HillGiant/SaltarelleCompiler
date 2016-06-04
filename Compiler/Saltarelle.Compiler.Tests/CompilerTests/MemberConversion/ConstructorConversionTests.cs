@@ -5,6 +5,7 @@ using ICSharpCode.NRefactory.TypeSystem;
 using NUnit.Framework;
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.ScriptSemantics;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.CompilerTests.MemberConversion {
 	[TestFixture]
@@ -15,7 +16,7 @@ namespace Saltarelle.Compiler.Tests.CompilerTests.MemberConversion {
 			var cls = FindClass("C");
 			cls.NamedConstructors.Should().BeEmpty();
 			cls.UnnamedConstructor.Should().NotBeNull();
-			cls.UnnamedConstructor.ParameterNames.Should().HaveCount(0);
+			cls.UnnamedConstructor.Parameters.Select(p => p.Name).ToList().Should().HaveCount(0);
 		}
 
 		[Test]

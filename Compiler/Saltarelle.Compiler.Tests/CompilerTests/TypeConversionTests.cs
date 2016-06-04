@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 using Saltarelle.Compiler.JSModel.Expressions;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 using FluentAssertions;
 using Saltarelle.Compiler.ScriptSemantics;
 

@@ -83,13 +83,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\JSModel\JSModel.csproj">
-      <Project>{C84DF308-9EBF-4521-9CA2-5C531F4B245A}</Project>
-      <Name>JSModel</Name>
-    </ProjectReference>
+    <Content Include="ParserImpl\XebicLicense.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ParserImpl\XebicLicense.txt" />
+    <ProjectReference Include="..\JSModel\TypeScriptModel.csproj">
+      <Project>{c84df308-9ebf-4521-9ca2-5c531f4b245a}</Project>
+      <Name>TypeScriptModel</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CleanAntlrCode">

@@ -100,7 +100,7 @@ namespace Saltarelle.Compiler.JSModel
 
 		public virtual JsExpression VisitFunctionDefinitionExpression(JsFunctionDefinitionExpression expression, TData data) {
 			var body = VisitStatement(expression.Body, data);
-			return ReferenceEquals(body, expression.Body) ? expression : JsExpression.FunctionDefinition(expression.ParameterNames, body, expression.Name);
+			return ReferenceEquals(body, expression.Body) ? expression : JsExpression.FunctionDefinition(expression.Parameters.Select(p=>p.Name), body, expression.Name);
 		}
 
 		public virtual JsExpression VisitIdentifierExpression(JsIdentifierExpression expression, TData data) {
@@ -283,7 +283,7 @@ namespace Saltarelle.Compiler.JSModel
 
 		public virtual JsStatement VisitFunctionStatement(JsFunctionStatement statement, TData data) {
 			var body = VisitStatement(statement.Body, data);
-			return ReferenceEquals(body, statement.Body) ? statement : JsStatement.Function(statement.Name, statement.ParameterNames, body);
+			return ReferenceEquals(body, statement.Body) ? statement : JsStatement.Function(statement.Name, statement.Parameters.Select(p=>p.Name), body);
 		}
 
 		public virtual JsStatement VisitGotoStatement(JsGotoStatement statement, TData data) {

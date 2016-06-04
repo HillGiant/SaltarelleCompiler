@@ -7,7 +7,7 @@ using ICSharpCode.NRefactory.TypeSystem;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;
 
-namespace Saltarelle.Compiler.JSModel.TypeSystem {
+namespace Saltarelle.Compiler.JSModel.OldTypeSystem {
 	public class JsMethod {
 		public IMember CSharpMember { get; private set; }
 		public string Name { get; private set; }

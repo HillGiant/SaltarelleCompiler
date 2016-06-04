@@ -166,7 +166,7 @@ namespace Saltarelle.Compiler.JSModel
 			_cb.Append("(");
 
 			bool first = true;
-			foreach (var arg in expression.ParameterNames) {
+			foreach (var arg in expression.Parameters.Select(p => p.Name)) {
 				if (!first)
 					_cb.Append("," + _space);
 				_cb.Append(arg);
@@ -743,10 +743,15 @@ redo:
 
 		public object VisitFunctionStatement(JsFunctionStatement statement, bool addNewline) {
 			_cb.Append("function " + statement.Name + "(");
-			for (int i = 0; i < statement.ParameterNames.Count; i++) {
-				if (i != 0)
-					_cb.Append("," + _space);
-				_cb.Append(statement.ParameterNames[i]);
+                        bool first = true;
+                        foreach(var name in statement.Parameters.Select(p => p.Name))
+                        {
+                            if (first)
+                            {
+                                _cb.Append("," + _space);
+                                first = false;
+                            }
+                                _cb.Append(name);
 			}
 			_cb.Append(")" + _space);
 			VisitStatement(statement.Body, addNewline);

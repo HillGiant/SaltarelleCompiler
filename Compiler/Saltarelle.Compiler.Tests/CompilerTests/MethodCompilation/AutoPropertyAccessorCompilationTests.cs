@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.ScriptSemantics;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.CompilerTests.MethodCompilation {
 	[TestFixture]

@@ -1,190 +1,193 @@
-/*
-
-Copyrights 2008 Xebic Reasearch BV. All rights reserved (see license.txt).
-Owner : Patrick Hulsmeijer.
-
-This ANTLR 3 LL(*) grammar is based on Ecma-262 3rd edition (JavaScript 1.5, JScript 5.5). 
-The annotations refer to the "A Grammar Summary" section (e.g. A.1 Lexical Grammar) and the numbers in parenthesis to the paragraph numbers (e.g. (7.8) ).
-This document is best viewed with ANTLRWorks (www.antlr.org).
-
-
-The major challenges faced in defining this grammar were:
-
--1- Ambiguity surrounding the DIV sign in relation to the multiplicative expression and the regular expression literal.
-This is solved with some lexer driven magic: a gated semantical predicate turns the recognition of regular expressions on or off, based on the
-value of the RegularExpressionsEnabled property. When regular expressions are enabled they take precedence over division expressions. The decision whether
-regular expressions are enabled is based on the heuristics that the previous token can be considered as last token of a left-hand-side operand of a division.
-
--2- Automatic semicolon insertion.
-This is solved within the parser. The semicolons are not physically inserted but the situations in which they should are recognized and treated as if they were.
-The physical insertion of semicolons would be undesirable because of several reasons:
-- performance degration because of how ANTLR handles tokens in token streams
-- the alteration of the input, which we need to have unchanged
-- it is superfluous being of no interest to AST construction
-
--3- Unicode identifiers
-Because ANTLR couldn't handle the unicode tables defined in the specification well and for performance reasons unicode identifiers are implemented as an action 
-driven alternative to ASCII identifiers. First the ASCII version is tried that is defined in detail in this grammar and then the unicode alternative is tried action driven.
-Because of the fact that the ASCII version is defined in detail the mTokens switch generation in the lexer can predict identifiers appropriately.
-For details see the identifier rules.
-
-
-The minor challenges were related to converting the grammar to an ANTLR LL(*) grammar:
-- Resolving the ambiguity between functionDeclaration vs functionExpression and block vs objectLiteral stemming from the expressionStatement production.
-- Left recursive nature of the left hand side expressions.
-- The assignmentExpression production.
-- The forStatement production.
-The grammar was kept as close as possible to the grammar in the "A Grammar Summary" section of Ecma-262.
-
-*/
-
-grammar ES3 ;
+grammar ES3;
 
 options
 {
-	output = AST ;
-	language = CSharp3 ;
+	output = AST;
+	language = CSharp3;
+	k=3;
 }
 
-tokens
-{
+tokens {
+
 // Reserved words
-	NULL		= 'null' ;
-	TRUE		= 'true' ;
-	FALSE		= 'false' ;
+    NULL		= 'null' ;
+    TRUE		= 'true' ;
+    FALSE		= 'false' ;
 
 // Keywords
-	BREAK		= 'break' ;
-	CASE		= 'case' ;
-	CATCH 		= 'catch' ;
-	CONTINUE 	= 'continue' ;
-	DEBUGGER 	= 'debugger' ;
-	DEFAULT		= 'default' ;
-	DELETE		= 'delete' ;
-	DO 		= 'do' ;
-	ELSE 		= 'else' ;
-	FINALLY 	= 'finally' ;
-	FOR 		= 'for' ;
-	FUNCTION 	= 'function' ;
-	IF 		= 'if' ;
-	IN 		= 'in' ;
-	INSTANCEOF 	= 'instanceof' ;
-	NEW 		= 'new' ;
-	RETURN 		= 'return' ;
-	SWITCH 		= 'switch' ;
-	THIS 		= 'this' ;
-	THROW 		= 'throw' ;
-	TRY 		= 'try' ;
-	TYPEOF 		= 'typeof' ;
-	VAR 		= 'var' ;
-	VOID 		= 'void' ;
-	WHILE 		= 'while' ;
-	WITH 		= 'with' ;
+    BREAK		= 'break' ;
+    CASE		= 'case' ;
+    CATCH 		= 'catch' ;
+    CONTINUE 	        = 'continue' ;
+    DEFAULT		= 'default' ;
+    DELETE		= 'delete' ;
+    DO 		        = 'do' ;
+    ELSE 		= 'else' ;
+    FINALLY 	        = 'finally' ;
+    FOR 		= 'for' ;
+    FUNCTION 	        = 'function' ;
+    IF 		        = 'if' ;
+    IN 		        = 'in' ;
+    INSTANCEOF 	        = 'instanceof' ;
+    NEW 		= 'new' ;
+    RETURN 		= 'return' ;
+    SWITCH 		= 'switch' ;
+    THIS 		= 'this' ;
+    THROW 		= 'throw' ;
+    TRY 		= 'try' ;
+    TYPE 		= 'type' ;
+    TYPEOF 		= 'typeof' ;
+    VAR 		= 'var' ;
+    VOID 		= 'void' ;
+    WHILE 		= 'while' ;
+    WITH 		= 'with' ;
 
+// Typescript reserved words
+    ABSTRACT	        = 'abstract' ;
+    CLASS 		= 'class' ;
+    DECLARE   	        = 'declare';
+    INTERFACE 	        = 'interface' ;
+    EXTENDS   	        = 'extends';
+    MODULE    	        = 'module';
+    EXPORT    	        = 'export';
+    IMPORT    	        = 'import';
+    PRIVATE 	        = 'private' ;
+    PROTECTED 	        = 'protected' ;
+    PUBLIC		= 'public' ;
+    CONSTRUCTOR 	= 'constructor' ;
+    GET 		= 'get' ;
+    SET 		= 'set' ;
+    REQUIRE		= 'require';
+
+// Typescript predefined types
+    ANY		        = 'any' ;
+    NUMBER		= 'number' ;
+    BOOLEAN		= 'boolean' ;
+    STRING		= 'string' ;
+    VOID		= 'void' ;
+        
 // Future reserved words
-/*
-	ABSTRACT	= 'abstract' ;
-	BOOLEAN		= 'boolean' ;
-	BYTE		= 'byte' ;
-	CHAR		= 'char' ;
-	CLASS		= 'class' ;
-	CONST		= 'const' ;
-	DOUBLE		= 'double' ;
-	ENUM		= 'enum' ;
-	EXPORT		= 'export' ;
-	EXTENDS		= 'extends' ;
-	FINAL		= 'final' ;
-	FLOAT		= 'float' ;
-	IMPLEMENTS	= 'implements' ;
-	IMPORT		= 'import' ;
-	INT			= 'int' ;
-	INTERFACE	= 'interface' ;
-	LONG		= 'long' ;
-	NATIVE		= 'native' ;
-	PACKAGE		= 'package' ;
-	PRIVATE		= 'private' ;
-	PROTECTED 	= 'protected' ;
-	PUBLIC		= 'public' ;
-	SHORT		= 'short' ;
-	STATIC		= 'static' ;
-	SUPER		= 'super' ;
-	SYNCHRONIZED	= 'synchronized' ;
-	THROWS		= 'throws' ;
-	TRANSIENT	= 'transient' ;
-	VOLATILE	= 'volatile' ;
-*/
+    BOOLEAN 	        = 'boolean' ;
+    BYTE 		= 'byte' ;
+    CHAR 		= 'char' ;
+    CONST 		= 'const' ;
+    DOUBLE		= 'double' ;
+    ENUM 		= 'enum' ;
+    FINAL 		= 'final' ;
+    FLOAT 		= 'float' ;
+    GOTO 		= 'goto' ;
+    IMPLEMENTS 	        = 'implements' ;
+    INT 		= 'int' ;
+    LONG 		= 'long' ;
+    NATIVE 		= 'native' ;
+    PACKAGE 	        = 'package' ;
+    SHORT 		= 'short' ;
+    STATIC 		= 'static' ;
+    SUPER 		= 'super' ;
+    SYNCHRONIZED 	= 'synchronized' ;
+    THROWS 		= 'throws' ;
+    TRANSIENT 	        = 'transient' ;
+    VOLATILE 	        = 'volatile' ;
+
+// Made-up keywords
+    YIELD		= 'yield';
+    AWAIT               = 'await';
 
 // Punctuators
-	LBRACE		= '{' ;
-	RBRACE		= '}' ;
-	LPAREN		= '(' ;
-	RPAREN		= ')' ;
-	LBRACK		= '[' ;
-	RBRACK		= ']' ;
-	DOT		= '.' ;
-	SEMIC		= ';' ;
-	COMMA		= ',' ;
-	LT		= '<' ;
-	GT		= '>' ;
-	LTE		= '<=' ;
-	GTE		= '>=' ;
-	EQ		= '==' ;
-	NEQ		= '!=' ;
-	SAME		= '===' ;
-	NSAME		= '!==' ;
-	ADD		= '+' ;
-	SUB		= '-' ;
-	MUL		= '*' ;
-	MOD		= '%' ;
-	INC		= '++' ;
-	DEC		= '--' ;
-	SHL		= '<<' ;
-	SHR		= '>>' ;
-	SHU		= '>>>' ;
-	AND		= '&' ;
-	OR		= '|' ;
-	XOR		= '^' ;
-	NOT		= '!' ;
-	INV		= '~' ;
-	LAND		= '&&' ;
-	LOR		= '||' ;
-	QUE		= '?' ;
-	COLON		= ':' ;
-	ASSIGN		= '=' ;
-	ADDASS		= '+=' ;
-	SUBASS		= '-=' ;
-	MULASS		= '*=' ;
-	MODASS		= '%=' ;
-	SHLASS		= '<<=' ;
-	SHRASS		= '>>=' ;
-	SHUASS		= '>>>=' ;
-	ANDASS		= '&=' ;
-	ORASS		= '|=' ;
-	XORASS		= '^=' ;
-	DIV		= '/' ;
-	DIVASS		= '/=' ;
-	
-// Imaginary
-	ARGS ;
-	ARRAY ;
-	BLOCK ;
-	BYFIELD ;
-	BYINDEX ;
-	CALL ;
-	CEXPR ;
-	EXPR ;
-	FORITER ;
-	FORSTEP ;
-	ITEM ;
-	LABELLED ;
-	NAMEDVALUE ;
-	NEG ;
-	OBJECT ;
-	PAREXPR ;
-	PDEC ;
-	PINC ;
-	POS ;
-	FUNCTIONDECLARATION ;
+    LBRACE		= '{' ;
+    RBRACE		= '}' ;
+    LPAREN		= '(' ;
+    RPAREN		= ')' ;
+    LBRACK		= '[' ;
+    RBRACK		= ']' ;
+    DOT		        = '.' ;
+    SEMIC		= ';' ;
+    COMMA		= ',' ;
+    LT	                = '<' ;
+    GT		        = '>' ;
+    LTE		        = '<=' ;
+    GTE		        = '>=' ;
+    EQ		        = '==' ;
+    NEQ		        = '!=' ;
+    SAME		= '===' ;
+    NSAME		= '!==' ;
+    ADD		        = '+' ;
+    SUB		        = '-' ;
+    MUL		        = '*' ;
+    MOD		        = '%' ;
+    INC		        = '++' ;
+    DEC		        = '--' ;
+    SHL		        = '<<' ;
+    SHR		        = '>>' ;
+    SHU		        = '>>>' ;
+    AND		        = '&' ;
+    OR		        = '|' ;
+    XOR		        = '^' ;
+    NOT		        = '!' ;
+    INV		        = '~' ;
+    LAND		= '&&' ;
+    LOR		        = '||' ;
+    QUE		        = '?' ;
+    COLON		= ':' ;
+    ASSIGN		= '=' ;
+    ADDASS		= '+=' ;
+    SUBASS		= '-=' ;
+    MULASS		= '*=' ;
+    MODASS		= '%=' ;
+    SHLASS		= '<<=' ;
+    SHRASS		= '>>=' ;
+    SHUASS		= '>>>=' ;
+    ANDASS		= '&=' ;
+    ORASS		= '|=' ;
+    XORASS		= '^=' ;
+    DIV		        = '/' ;
+    DIVASS		= '/=' ;
+    ELLIPSIS            = '...';
+    ARROW               = '=>';
+
+    ARRAY_TYPE;
+    FUNCTION_TYPE;
+    PARAM;
+    PARAM_ARRAY;
+    PARAM_OPT;
+    PARAMS;
+    VAR_OPT;
+    INDEX;
+    OBJECT_TYPE;
+    ARGS ;
+    ARRAY ;
+    BLOCK ;
+    BYFIELD ;
+    BYINDEX ;
+    CALL ;
+    CEXPR ;
+    EXPR ;
+    FORITER ;
+    FORSTEP ;
+    ITEM ;
+    LABELLED ;
+    NAMEDVALUE ;
+    NEG ;
+    OBJECT ;
+    PAREXPR ;
+    PDEC ;
+    PINC ;
+    POS ;
+    TYPE_PARAMS;
+    TYPE_ARGS;
+    FUNCTIONDECLARATION ;
+    TYPEREF;
+    PROP_SIG;
+    CALL_SIG;
+    CONST_SIG;
+    INDEX_SIG;
+    METH_SIG;
+    FUNC_TYPE;
+    CONST_TYPE;
+    TUPLE_TYPE;
+    CONST_DECL;
+    METH_DECL;
+    AMBIENTFUNCTION;
 }
 
 @lexer::namespace { Xebic.Parsers.ES3 }
@@ -205,7 +208,7 @@ tokens
 }
 
 //
-// $<	A.1 Lexical Grammar (7)
+// $<	A.1 Lexical Grammar
 //
 
 // Added for lexing purposes
@@ -269,6 +272,7 @@ WhiteSpace
 
 // $>
 
+
 // $<	Line terminators (7.3)
 
 fragment LF // Line Feed
@@ -294,11 +298,6 @@ fragment LineTerminator
 EOL
 	: ( ( CR LF? ) | LF | LS | PS ) { $channel = Hidden; }
 	;
-
-GOTO		:	'goto' { if (!AllowCustomKeywords) { $type = Identifier; } };
-AWAIT		:	'await' { if (!AllowCustomKeywords) { $type = Identifier; } };
-YIELD		:	'yield' { if (!AllowCustomKeywords) { $type = Identifier; } };
-
 // $>
 
 // $<	Comments (7.4)
@@ -317,7 +316,8 @@ SingleLineComment
 
 token
 	: reservedWord
-	| Identifier
+	| identifierAllowedKeyword
+	| identifier
 	| punctuator
 	| numericLiteral
 	| StringLiteral
@@ -327,7 +327,7 @@ token
 
 reservedWord
 	: keyword
-//	| futureReservedWord
+	| futureReservedWord
 	| NULL
 	| booleanLiteral
 	;
@@ -341,7 +341,6 @@ keyword
 	| CASE
 	| CATCH
 	| CONTINUE
-	| DEBUGGER
 	| DEFAULT
 	| DELETE
 	| DO
@@ -368,7 +367,7 @@ keyword
 // $>
 
 // $<	Future reserved words (7.5.3)
-/*
+
 futureReservedWord
 	: ABSTRACT
 	| BOOLEAN
@@ -376,9 +375,9 @@ futureReservedWord
 	| CHAR
 	| CLASS
 	| CONST
+//	| DEBUGGER
 	| DOUBLE
 	| ENUM
-	| EXPORT
 	| EXTENDS
 	| FINAL
 	| FLOAT
@@ -401,12 +400,12 @@ futureReservedWord
 	| TRANSIENT
 	| VOLATILE
 	;
-*/
 
 // $>
 
 // $>
-	
+
+
 // $<	Identifiers (7.6)
 
 fragment IdentifierStartASCII
@@ -430,6 +429,22 @@ fragment IdentifierNameASCIIStart
 	: IdentifierStartASCII IdentifierPart*
 	;
 
+/* allow the usage of "contextual keywords" as identifiers*/
+identifierAllowedKeyword
+    : ANY
+    | CONSTRUCTOR
+    | DECLARE
+    | GET
+    | SET
+    | MODULE
+    | REQUIRE
+    | NUMBER
+    | STRING
+    | TYPE
+    | FINAL
+    | THROWS
+    ;
+
 /*
 The second alternative acts as an action driven fallback to evaluate other characters in the unicode range than the ones in the ASCII subset.
 Due to the first alternative this grammar defines enough so that ANTLR can generate a lexer that correctly predicts identifiers with characters in the ASCII range.
@@ -438,10 +453,16 @@ match this ASCII definition, the lexer calls ConsumeIdentifierUnicodeStart becau
 as first character in ranges other than ASCII and consumes further characters belonging to the identifier with help of mIdentifierPart generated out of the 
 IdentifierPart rule above.
 */
+
 Identifier
-	: IdentifierNameASCIIStart
+        : IdentifierNameASCIIStart
 	| { ConsumeIdentifierUnicodeStart(); }
 	;
+
+identifier
+    : identifierAllowedKeyword
+    | Identifier
+    ;
 
 // $>
 
@@ -643,17 +664,11 @@ RegularExpressionLiteral
 // $<	A.3 Expressions (11)
 //
 
-identifierOrReservedWord
-	:
-	Identifier	-> Identifier
-	| rw=reservedWord	-> Identifier[((Antlr.Runtime.Tree.ITree)$rw.tree).Text]
-	;
-
 // $<Primary expressions (11.1)
 
 primaryExpression
 	: THIS
-	| Identifier
+	| identifier
 	| literal
 	| arrayLiteral
 	| objectLiteral
@@ -681,7 +696,7 @@ nameValuePair
 	;
 
 propertyName
-	: identifierOrReservedWord
+	: identifier
 	| StringLiteral
 	| numericLiteral
 	;
@@ -699,26 +714,28 @@ memberExpression
 	: primaryExpression
 	| functionExpression
 	| newExpression
+        | arrowFunctionExpression
 	;
 
 newExpression
-	: NEW^ leftHandSideExpression[false] ( (LPAREN) => arguments )?
+	: NEW^ primaryExpression
 	;
 
+	
 arguments
 	: LPAREN ( assignmentExpression ( COMMA assignmentExpression )* )? RPAREN
 	-> ^( ARGS assignmentExpression* )
 	;
 	
-leftHandSideExpression[bool allowCalls]
+leftHandSideExpression
 	:
 	(
 		memberExpression 		-> memberExpression
 	)
 	(
-		{ allowCalls }? arguments			-> ^( CALL $leftHandSideExpression arguments )
-		| (LBRACK) => LBRACK expression RBRACK	-> ^( BYINDEX $leftHandSideExpression expression )
-		| (DOT) => DOT identifierOrReservedWord -> ^( BYFIELD $leftHandSideExpression identifierOrReservedWord )
+		arguments			-> ^( CALL $leftHandSideExpression arguments )
+		| LBRACK expression RBRACK	-> ^( BYINDEX $leftHandSideExpression expression )
+		| DOT identifier		-> ^( BYFIELD $leftHandSideExpression identifier )
 	)*
 	;
 
@@ -733,7 +750,7 @@ We only must promote EOLs when the la is INC or DEC because this production is c
 In other words: only promote EOL when we are really in a postfix expression. A check on the la will ensure this.
 */
 postfixExpression
-	: leftHandSideExpression[true] { if (input.LA(1) == INC || input.LA(1) == DEC) PromoteEOL(null); } ( postfixOperator^ )?
+	: leftHandSideExpression { if (input.LA(1) == INC || input.LA(1) == DEC) PromoteEOL(null); } ( postfixOperator^ )?
 	;
 	
 postfixOperator
@@ -922,7 +939,7 @@ assignmentExpressionNoIn
 	
 // $<Comma operator (11.14)
 
-expression
+public expression
 	: exprs+=assignmentExpression ( COMMA exprs+=assignmentExpression )*
 	-> { $exprs.Count > 1 }? ^( CEXPR $exprs+ )
 	-> $exprs
@@ -998,10 +1015,6 @@ statementTail
 	| switchStatement
 	| throwStatement
 	| tryStatement
-	| debuggerStatement
-	| gotoStatement
-	| yieldStatement
-	| awaitStatement
 	;
 
 // $<Block (12.1)
@@ -1021,11 +1034,11 @@ variableStatement
 	;
 
 variableDeclaration
-	: Identifier ( ASSIGN^ assignmentExpression )?
+	: identifier typeAnnotation? ( ASSIGN assignmentExpression )?
 	;
 	
 variableDeclarationNoIn
-	: Identifier ( ASSIGN^ assignmentExpressionNoIn )?
+	: identifier typeAnnotation? ( ASSIGN assignmentExpressionNoIn )?
 	;
 
 // $>
@@ -1179,7 +1192,7 @@ no line terminators allowed beween CONTINUE and the optional identifier.
 As an optimization we check the la first to decide whether there is an identier following.
 */
 continueStatement
-	: CONTINUE^ { if (input.LA(1) == Identifier) PromoteEOL(null); } Identifier? semic!
+	: CONTINUE^ { if (input.LA(1) == Identifier) PromoteEOL(null); } identifier? semic!
 	;
 
 // $>
@@ -1192,7 +1205,7 @@ no line terminators allowed beween BREAK and the optional identifier.
 As an optimization we check the la first to decide whether there is an identier following.
 */
 breakStatement
-	: BREAK^ { if (input.LA(1) == Identifier) PromoteEOL(null); } Identifier? semic!
+	: BREAK^ { if (input.LA(1) == Identifier) PromoteEOL(null); } identifier? semic!
 	;
 
 // $>
@@ -1229,11 +1242,7 @@ withStatement
 // $<The switch statement (12.11)
 
 switchStatement
-@init
-{
-	int defaultClauseCount = 0;
-}
-	: SWITCH LPAREN expression RPAREN LBRACE ( { defaultClauseCount == 0 }?=> c+=defaultClause { defaultClauseCount++; } | c+=caseClause )* RBRACE
+	: SWITCH LPAREN expression RPAREN LBRACE (c+=defaultClause| c+=caseClause )* RBRACE
 	-> ^( SWITCH expression $c* )
 	;
 
@@ -1250,8 +1259,8 @@ defaultClause
 // $<Labelled statements (12.12)
 
 labelledStatement
-	: Identifier COLON statement
-	-> ^( LABELLED Identifier statement )
+	: identifier COLON statement
+	-> ^( LABELLED identifier statement )
 	;
 
 // $>
@@ -1286,7 +1295,7 @@ tryStatement
 	;
 	
 catchClause
-	: CATCH^ LPAREN! Identifier RPAREN! block
+	: CATCH^ LPAREN! identifier RPAREN! block
 	;
 	
 finallyClause
@@ -1304,18 +1313,13 @@ finallyClause
 // $<	Function Definition (13)
 
 functionDeclaration
-	: FUNCTION name=Identifier formalParameterList functionBody
-	-> ^( FUNCTIONDECLARATION $name formalParameterList functionBody )
+	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? functionBody? semic
+	-> ^( FUNCTIONDECLARATION $name typeParameters? parameterList? typeAnnotation? functionBody? )
 	;
 
 functionExpression
-	: FUNCTION name=Identifier? formalParameterList functionBody
-	-> ^( FUNCTION $name? formalParameterList functionBody )
-	;
-
-formalParameterList
-	: LPAREN ( Identifier ( COMMA Identifier )* )? RPAREN
-	-> ^( ARGS Identifier* )
+	: FUNCTION name=identifier? typeParameters? LPAREN parameterList? RPAREN typeAnnotation? functionBody
+	-> ^( FUNCTION $name? typeParameters? parameterList? typeAnnotation?  functionBody )
 	;
 
 functionBody
@@ -1341,31 +1345,411 @@ options
 {
 	k = 1 ;
 }
-	: { input.LA(1) == FUNCTION }? functionDeclaration
-	| statement
-	;
-
-public expressionOnly
-	: expression EOF
-	;
+    : { input.LA(1) == FUNCTION }? functionDeclaration
+    | ambientDeclaration
+    | statement
+    | interfaceDeclaration
+    | classDeclaration
+    | importDeclaration
+    | enumDeclaration
+    ;
 
 // $>
 
 // $>
 
-debuggerStatement
-	: DEBUGGER;
+// <$ Typescript extensions
 
-/* CUSTOM STUFF
-*/
-gotoStatement
-	: GOTO^ Identifier semic!
+// $<	Type Parameters (3.5.1)
+
+typeConstraint
+    : EXTENDS type -> ^(EXTENDS type)
+    ;
+
+typeParameters
+    : LT typeParameter (COMMA typeParameter)* GT-> ^(TYPE_PARAMS typeParameter*)
+    ;
+
+typeParameter
+    : identifier typeConstraint? -> ^(identifier typeConstraint?)
+    ;
+    
+// $>
+
+// $<	Type Arguments (3.5.2)
+
+typeArguments
+    : LT type (COMMA type)* GT-> ^(TYPE_ARGS type*)
+    ;
+
+
+// $>
+
+// $<	Types (3.7)
+
+public type
+options
+{
+	k = 4 ;
+}
+    : primaryType
+    //| unionType
+    | functionType
+    | constructorType
+    ;
+    
+nonTupleType
+options
+{
+	k = 4 ;
+	backtrack = true;
+}
+    : predefinedType
+    | typeReference
+    | objectType
+    | typeQuery
+    | functionType
+    | constructorType
+    // | unionType
 	;
 
-yieldStatement
-	: YIELD^ ((RETURN! expression) | BREAK!) semic!
+
+// Intentionally ignoring parenthesised types because we shouldn't need to output them
+primaryType
+options
+{
+	k = 4 ;
+	backtrack = true;
+}
+    : (predefinedType
+    | typeReference
+    | objectType
+    | tupleType
+    | typeQuery)
+    arrayIndicator*
+    ;
+
+arrayIndicator
+    : (LBRACK RBRACK) -> ARRAY_TYPE
+    ;
+    
+// $<	Predefined Types (3.7.1)
+
+predefinedType
+    : ANY
+    | NUMBER
+    | BOOLEAN
+    | STRING
+    | VOID
+    ;
+
+// $>
+
+// $<	Type References (3.7.2)
+
+typeReference
+    : typeName { PromoteEOL(null); } typeArguments? -> ^(TYPEREF typeName typeArguments?)
+    ;
+
+typeName
+    : identifier
+    | qName
+    ;
+
+qName
+	@init { string result = ""; }
+	: x=identifier { result = $x.text; } ( DOT { result += '.'; } y=identifier { result += $y.text; } )+ -> Identifier[null, result]
+	;
+// $>
+// $<	3.7.3 Object Type Literals
+
+objectType
+    : LBRACE (typeMember semic)* RBRACE -> ^(OBJECT_TYPE typeMember*)
+    ;
+
+typeMember
+    : propertySignature
+    | callSignature
+    | constructSignature
+    | indexSignature
+    | methodSignature
+    ;
+// $>
+
+// $<	3.7.5 Tuple Type Literals
+
+// Limit to non-tuple types for LL parser friendlyness
+tupleType
+    : LBRACK nonTupleType (COMMA type)* RBRACK -> ^(TUPLE_TYPE nonTupleType type*)
+    ;
+
+// $>
+
+// $<	3.7.6 Union Type Literals
+
+unionType
+    : primaryType (OR primaryType)+
+    ;
+
+// $>
+
+// $<	3.7.7 Function Type Literals
+
+functionType
+    : typeParameters? LPAREN parameterList? RPAREN ARROW type -> ^(FUNC_TYPE typeParameters? parameterList? type?)
+    ;
+
+// $>
+
+// $<	3.7.8 Constructor Type Literals
+
+constructorType
+    : NEW typeParameters? LPAREN parameterList? RPAREN ARROW type -> ^(CONST_TYPE typeParameters? parameterList? type?)
+    ;
+
+// $>
+
+// $<	3.7.9 Type Queries
+
+typeQuery
+    : TYPEOF^ (identifier | qName)
+    ;
+    
+// $>
+
+// $<	3.8 Specifying Members
+
+// $<	3.8.1 Property Signatures
+
+propertySignature
+    : propertyName QUE? typeAnnotation? -> ^(PROP_SIG propertyName QUE? typeAnnotation?)
+    ;
+
+// $>
+
+// $<	3.8.2 Call Signatures
+
+callSignature
+    : typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(CALL_SIG typeParameters? parameterList? typeAnnotation?)
+    ;
+
+// $>
+
+// $<	3.8.2.2 Parameter List
+
+parameterList
+    : parameter ( COMMA parameter )* (COMMA restParameter)? -> ^(PARAMS parameter* restParameter?)
+    | restParameter -> ^(PARAMS restParameter)
+    ;
+
+accessibilityModifier
+    : PUBLIC
+    | PRIVATE
+    | PROTECTED
+    ;
+
+parameter
+    : accessibilityModifier? identifier QUE? typeAnnotation?( ASSIGN assignmentExpression )? -> ^(PARAM identifier accessibilityModifier? QUE? typeAnnotation? assignmentExpression?)
+    ;
+
+restParameter
+    : ELLIPSIS identifier typeAnnotation? -> ^(ELLIPSIS identifier typeAnnotation?)
+    ;
+
+// $>
+
+// $<	3.8.3 Construct Signature
+constructSignature
+    : NEW typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(CONST_SIG typeParameters? parameterList? typeAnnotation?)
+    ;
+// $>
+
+indexSignature
+options
+{
+	k = 4 ;
+}
+    : LBRACK identifier COLON STRING RBRACK typeAnnotation -> ^(INDEX_SIG identifier STRING typeAnnotation)
+    | LBRACK identifier COLON NUMBER RBRACK typeAnnotation -> ^(INDEX_SIG identifier NUMBER typeAnnotation)
+    ;
+
+methodSignature
+    : propertyName QUE? typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(METH_SIG propertyName QUE? typeParameters? parameterList? typeAnnotation?)
+    ;
+
+// $<	3.9 Type Aliases
+
+typeAliasDeclaration
+    : TYPE identifier EQ type semic
+    ;
+
+// $>
+
+
+typeAnnotation
+    : COLON type -> ^(COLON type)
+    ;
+
+// $<	5 Interfaces
+
+interfaceDeclaration
+	: INTERFACE identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(INTERFACE identifier typeParameters? extendsClause? typeMember*)
+	;
+	
+extendsClause
+	: EXTENDS typeReference (COMMA typeReference)* -> ^(EXTENDS typeReference*)
 	;
 
-awaitStatement
-	: AWAIT^ expression COLON! Identifier semic!
+// $>
+
+// $<   6 Classes
+
+classDeclaration
+	: CLASS identifier typeParameters? extendsClause? implementsClause? LBRACE classElement* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? classElement*)
 	;
+	
+implementsClause	
+	: IMPLEMENTS identifier (COMMA identifier)*
+	;
+	
+classElement
+options
+{
+	k = 4 ;
+}
+	: getAccessor 
+        | setAccessor
+	| constructorDeclaration 
+	| memberVariableDeclaration 
+	| memberFunctionDeclaration 
+	| indexSignature semic -> indexSignature
+	;
+		
+constructorDeclaration
+	: constructorCallSignature (semic constructorCallSignature)* functionBody -> ^(CONST_DECL constructorCallSignature* functionBody)
+	;
+	
+constructorCallSignature
+	: accessibilityModifier? CONSTRUCTOR LPAREN parameterList? RPAREN -> ^(CONST_SIG accessibilityModifier? parameterList?)
+	;
+	
+memberVariableDeclaration
+        : accessibilityModifier? STATIC? variableDeclaration semic
+	-> ^( VAR accessibilityModifier? STATIC? variableDeclaration )
+	;
+	
+memberFunctionDeclaration	
+	: memberFunctionCallSignature (semic memberFunctionCallSignature)* functionBody -> ^(METH_DECL memberFunctionCallSignature* functionBody)
+	;
+	
+memberFunctionCallSignature
+	: accessibilityModifier? STATIC? identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? -> ^(METH_SIG accessibilityModifier? STATIC? identifier typeParameters? parameterList? typeAnnotation?)
+	;
+	
+getAccessor
+	: accessibilityModifier? STATIC? GET identifier LPAREN RPAREN typeAnnotation? functionBody -> ^(GET accessibilityModifier? STATIC? identifier typeAnnotation? functionBody)
+	;
+	
+setAccessor
+	: accessibilityModifier? STATIC? SET identifier LPAREN parameter RPAREN typeAnnotation? functionBody -> ^(SET accessibilityModifier? STATIC? identifier parameter typeAnnotation? functionBody)
+	;
+
+// $>
+
+
+// $<   7 Enums
+enumDeclaration	
+	: CONST? ENUM identifier LBRACE enumBody RBRACE
+	;
+	
+enumBody
+	: (enumMember COMMA)* enumMember
+	;
+
+enumMember
+	: identifier( ASSIGN^ assignmentExpression )?
+	;
+
+// $>
+
+// $<   8 Internal Modules
+
+moduleDeclaration
+	: MODULE StringLiteral LBRACE (moduleElement)* RBRACE -> ^(MODULE StringLiteral moduleElement*)
+	;
+
+public moduleElement
+options
+{
+	k = 1 ;
+}
+    : importDeclaration
+    | ambientDeclaration
+    | moduleDeclaration
+    | { input.LA(1) == FUNCTION }? functionDeclaration
+    | statement
+    | interfaceDeclaration
+    | classDeclaration
+    | enumDeclaration
+    | exportDeclaration
+    ;
+	
+importDeclaration
+	: IMPORT identifier ASSIGN MODULE LPAREN StringLiteral RPAREN semic -> ^(IMPORT identifier StringLiteral)
+	;
+
+exportDeclaration
+    : EXPORT exportableElement -> ^(EXPORT exportableElement)
+    ;
+
+exportableElement
+    : interfaceDeclaration
+    | classDeclaration
+    | moduleDeclaration
+    | importDeclaration
+    | enumDeclaration
+    | ambientDeclaration
+    | variableStatement
+    | functionDeclaration
+    ;
+
+ambientDeclaration
+    : DECLARE ambientElement -> ^(DECLARE ambientElement)
+    ;
+
+ambientElement
+    : interfaceDeclaration
+    | ambientClassDeclaration
+    | moduleDeclaration
+    | importDeclaration
+    | enumDeclaration
+    | variableStatement
+    | ambientFunctionDeclaration
+    ;
+
+ambientClassDeclaration
+	: CLASS identifier typeParameters? extendsClause? LBRACE (typeMember semic)* RBRACE -> ^(CLASS identifier typeParameters? extendsClause? typeMember*)
+	;
+
+
+ambientFunctionDeclaration
+	: FUNCTION name=identifier typeParameters? LPAREN parameterList? RPAREN typeAnnotation? semic
+	-> ^( AMBIENTFUNCTION $name typeParameters? parameterList? typeAnnotation? )
+	;
+
+arrowFunctionExpression
+    : callSignature { PromoteEOL(null); } ARROW conciseBody
+    ;
+
+conciseBody
+options
+{
+	k = 1 ;
+}
+    : functionBody
+    | assignmentExpression
+    ;
+
+// $>
+
+// $>

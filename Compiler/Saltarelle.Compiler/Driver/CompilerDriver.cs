@@ -14,6 +14,7 @@ using Saltarelle.Compiler.JSModel.Statements;
 using Saltarelle.Compiler.OOPEmulation;
 using TopologicalSort;
 using Component = Castle.MicroKernel.Registration.Component;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Driver {
 	public class CompilerDriver {
@@ -336,7 +337,7 @@ namespace Saltarelle.Compiler.Driver {
 					js = ((JsBlockStatement)Minifier.Process(JsStatement.Block(js))).Statements;
 				}
 
-				string script = options.MinimizeScript ? OutputFormatter.FormatMinified(js) : OutputFormatter.Format(js);
+				string script = OutputFormatter.Format(js);
 				try {
 					File.WriteAllText(outputScriptPath, script, settings.Encoding);
 				}

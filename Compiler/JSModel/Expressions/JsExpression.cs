@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Saltarelle.Compiler.JSModel.Statements;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;
+using TypeScriptModel.TypeSystem;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.JSModel.Expressions {
 	public enum ExpressionNodeType {
@@ -310,6 +312,11 @@ namespace Saltarelle.Compiler.JSModel.Expressions {
 		public static JsFunctionDefinitionExpression FunctionDefinition(IEnumerable<string> parameterNames, JsStatement body, string name = null) {
 			return new JsFunctionDefinitionExpression(parameterNames, body, name);
 		}
+
+                public static JsFunctionDefinitionExpression FunctionDefinition(IList<TsTypeParameter> TypeParameters, IList<TsParameter> parameters, JsStatement body, string name = null, TsType type = null)
+                {
+                    return new JsFunctionDefinitionExpression(TypeParameters, parameters, body, name, type);
+                }
 
 		public static JsIdentifierExpression Identifier(string name) {
 			return new JsIdentifierExpression(name);

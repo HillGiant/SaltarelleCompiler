@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Saltarelle.Compiler;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 using Saltarelle.Compiler.ScriptSemantics;
 using Saltarelle.Compiler.Tests;
 

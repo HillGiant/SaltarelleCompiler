@@ -14,6 +14,7 @@ using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.StateMachineRewrite;
 using Saltarelle.Compiler.JSModel.Statements;
 using Saltarelle.Compiler.ScriptSemantics;
+using TypeScriptModel;
 
 namespace CoreLib.Plugin {
 	public class RuntimeLibrary : IRuntimeLibrary {

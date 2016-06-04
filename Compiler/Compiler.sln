@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSModel", "JSModel\JSModel.csproj", "{C84DF308-9EBF-4521-9CA2-5C531F4B245A}"
-EndProject
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saltarelle.Compiler", "Saltarelle.Compiler\Saltarelle.Compiler.csproj", "{0B9DB3A8-CC8D-40AF-BC03-3D0BDA71AA19}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saltarelle.Compiler.Tests", "Saltarelle.Compiler.Tests\Saltarelle.Compiler.Tests.csproj", "{4EAA8F82-B663-4DE6-AD09-A5BBE625AF55}"
@@ -38,16 +38,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IKVM", "IKVM", "{E21C32AA-F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IKVM.Reflection", "ikvm\reflect\IKVM.Reflection.csproj", "{4CB170EF-DFE6-4A56-9E1B-A85449E827A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeScriptParser.Tests", "TypeScriptParser.Tests\TypeScriptParser.Tests.csproj", "{3D218116-612B-4FD1-B443-3A4E420B6842}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeScriptModel", "JSModel\TypeScriptModel.csproj", "{C84DF308-9EBF-4521-9CA2-5C531F4B245A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B9DB3A8-CC8D-40AF-BC03-3D0BDA71AA19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0B9DB3A8-CC8D-40AF-BC03-3D0BDA71AA19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B9DB3A8-CC8D-40AF-BC03-3D0BDA71AA19}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -92,6 +92,14 @@ Global
 		{4CB170EF-DFE6-4A56-9E1B-A85449E827A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CB170EF-DFE6-4A56-9E1B-A85449E827A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CB170EF-DFE6-4A56-9E1B-A85449E827A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D218116-612B-4FD1-B443-3A4E420B6842}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D218116-612B-4FD1-B443-3A4E420B6842}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D218116-612B-4FD1-B443-3A4E420B6842}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D218116-612B-4FD1-B443-3A4E420B6842}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C84DF308-9EBF-4521-9CA2-5C531F4B245A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

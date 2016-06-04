@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Saltarelle.Compiler.JSModel.Expressions;
 
-namespace Saltarelle.Compiler.JSModel.TypeSystem {
+namespace Saltarelle.Compiler.JSModel.OldTypeSystem {
 	public class JsNamedConstructor {
 		public string Name { get; private set; }
 		public JsFunctionDefinitionExpression Definition { get; private set; }

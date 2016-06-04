@@ -11,7 +11,7 @@ using Saltarelle.Compiler.Compiler;
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 using Saltarelle.Compiler.OOPEmulation;
 using Saltarelle.Compiler.ScriptSemantics;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Saltarelle.Compiler.JSModel.Statements;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 using Saltarelle.Compiler.OOPEmulation;
 
 namespace Saltarelle.Compiler.Decorators {

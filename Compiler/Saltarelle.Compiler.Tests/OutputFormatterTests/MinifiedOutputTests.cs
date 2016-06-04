@@ -3,17 +3,18 @@ using NUnit.Framework;
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.OutputFormatterTests {
 	[TestFixture]
 	public class MinifiedOutputTests {
 		private void AssertCorrect(JsExpression expr, string expected) {
-			var actual = OutputFormatter.FormatMinified(expr);
+			var actual = OutputFormatter.Format(expr);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(expected.Replace("\r\n", "\n")));
 		}
 
 		private void AssertCorrect(JsStatement stmt, string expected) {
-			var actual = OutputFormatter.FormatMinified(stmt);
+			var actual = OutputFormatter.Format(stmt);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(expected.Replace("\r\n", "\n")));
 		}
 

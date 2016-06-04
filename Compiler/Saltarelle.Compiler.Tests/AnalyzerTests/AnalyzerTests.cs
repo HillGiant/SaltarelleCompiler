@@ -10,6 +10,7 @@ using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Minification;
 using Saltarelle.Compiler.JSModel.Statements;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;
+using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.AnalyzerTests {
 	[TestFixture]
@@ -30,12 +31,12 @@ namespace Saltarelle.Compiler.Tests.AnalyzerTests {
 
 			public override JsExpression VisitFunctionDefinitionExpression(JsFunctionDefinitionExpression expression, object data) {
 				var body = (JsBlockStatement)VisitStatement(expression.Body, null);
-				return JsExpression.FunctionDefinition(expression.ParameterNames, JsStatement.Block(MakePrefix(expression).Concat(body.Statements)), expression.Name);
+                                return JsExpression.FunctionDefinition(expression.Parameters.Select(p => p.Name).ToList(), JsStatement.Block(MakePrefix(expression).Concat(body.Statements)), expression.Name);
 			}
 
 			public override JsStatement VisitFunctionStatement(JsFunctionStatement statement, object data) {
 				var body = (JsBlockStatement)VisitStatement(statement.Body, null);
-				return JsStatement.Function(statement.Name, statement.ParameterNames, JsStatement.Block(MakePrefix(statement).Concat(body.Statements)));
+                                return JsStatement.Function(statement.Name, statement.Parameters.Select(p => p.Name).ToList(), JsStatement.Block(MakePrefix(statement).Concat(body.Statements)));
 			}
 
 			private IEnumerable<JsStatement> MakePrefix(JsDeclarationScope scope) {

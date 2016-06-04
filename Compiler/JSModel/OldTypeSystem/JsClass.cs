@@ -9,7 +9,7 @@ using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;
 using Saltarelle.Compiler.JSModel.Statements;
 
-namespace Saltarelle.Compiler.JSModel.TypeSystem {
+namespace Saltarelle.Compiler.JSModel.OldTypeSystem {
 	/// <summary>
 	/// A class, interface or struct.
 	/// </summary>

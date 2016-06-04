@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Saltarelle.Compiler;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
-using Saltarelle.Compiler.JSModel.TypeSystem;
+using Saltarelle.Compiler.JSModel.OldTypeSystem;
 using ICSharpCode.NRefactory.TypeSystem;
 
 namespace QUnit.Plugin {

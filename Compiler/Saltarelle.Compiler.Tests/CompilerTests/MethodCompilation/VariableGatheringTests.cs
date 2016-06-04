@@ -17,13 +17,13 @@ namespace Saltarelle.Compiler.Tests.CompilerTests.MethodCompilation {
 		[Test]
 		public void ParameterGetCorrectNamesForSimpleMethods() {
 			CompileMethod("public void M(int i, string s, int i2) {} }");
-			CompiledMethod.ParameterNames.Should().Equal(new[] { "$i", "$s", "$i2" });
+                        CompiledMethod.Parameters.Select(p => p.Name).ToList().Should().Equal(new[] { "$i", "$s", "$i2" });
 		}
 
 		[Test]
 		public void TypeParametersAreConsideredUsedDuringParameterNameDetermination() {
 			CompileMethod("class C<TX> { public class C2<TY> { public void M<TZ>(int TX, int TY, int TZ) {} } }");
-			CompiledMethod.ParameterNames.Should().Equal(new[] { "$TX2", "$TY2", "$TZ2" });
+                        CompiledMethod.Parameters.Select(p => p.Name).ToList().Should().Equal(new[] { "$TX2", "$TY2", "$TZ2" });
 		}
 
 		[Test]

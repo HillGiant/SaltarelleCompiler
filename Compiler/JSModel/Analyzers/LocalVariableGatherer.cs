@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
+using System.Linq;
 
 namespace Saltarelle.Compiler.JSModel.Analyzers {
 	public class LocalVariableGatherer : RewriterVisitorBase<HashSet<string>> {
@@ -10,11 +11,11 @@ namespace Saltarelle.Compiler.JSModel.Analyzers {
 		}
 
 		public override JsExpression VisitFunctionDefinitionExpression(JsFunctionDefinitionExpression expression, HashSet<string> data) {
-			return base.VisitFunctionDefinitionExpression(expression, _result[expression] = new HashSet<string>(expression.ParameterNames));
+			return base.VisitFunctionDefinitionExpression(expression, _result[expression] = new HashSet<string>(expression.Parameters.Select(p=>p.Name)));
 		}
 
 		public override JsStatement VisitFunctionStatement(JsFunctionStatement statement, HashSet<string> data) {
-			return base.VisitFunctionStatement(statement, _result[statement] = new HashSet<string>(statement.ParameterNames));
+                    return base.VisitFunctionStatement(statement, _result[statement] = new HashSet<string>(statement.Parameters.Select(p => p.Name)));
 		}
 
 		public override JsCatchClause VisitCatchClause(JsCatchClause clause, HashSet<string> data) {

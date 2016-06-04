@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Saltarelle.Compiler.JSModel.Expressions;
+using TypeScriptModel;
 
 #pragma warning disable 618	// This file uses all the obsolete constructors that will be internal (non-obsolete) in a future release
 

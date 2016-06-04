@@ -5,7 +5,7 @@ using System.Text;
 using ICSharpCode.NRefactory.TypeSystem;
 using Saltarelle.Compiler.JSModel.ExtensionMethods;
 
-namespace Saltarelle.Compiler.JSModel.TypeSystem {
+namespace Saltarelle.Compiler.JSModel.OldTypeSystem {
 	public abstract class JsType : IFreezable {
 		protected bool Frozen { get; private set; }
 		public ITypeDefinition CSharpTypeDefinition { get; private set; }

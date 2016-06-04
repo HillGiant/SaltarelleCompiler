@@ -7,6 +7,8 @@ using Antlr.Runtime.Tree;
 using Xebic.Parsers.ES3;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
+using TypeScriptModel.Elements;
+using TypeScriptModel.TypeSystem;
 
 namespace JavaScriptParser {
 	public static class Parser {
@@ -15,7 +17,7 @@ namespace JavaScriptParser {
 			var tokens = new CommonTokenStream(lex);
 			var parser = new ES3Parser(tokens);
 
-			var r = parser.expressionOnly();
+			var r = parser.expression();
 			var tree = new ES3Walker(new CommonTreeNodeStream(r.Tree));
 			return tree.expression();
 		}
@@ -30,7 +32,8 @@ namespace JavaScriptParser {
 			return tree.statement();
 		}
 
-		public static IList<JsStatement> ParseProgram(string source) {
+                public static IList<TsSourceElement> ParseProgram(string source)
+                {
 			var lex = new ES3Lexer(new ANTLRStringStream(source));
    			var tokens = new CommonTokenStream(lex);
 			var parser = new ES3Parser(tokens);
@@ -38,6 +41,32 @@ namespace JavaScriptParser {
 			var r = parser.program();
 			var tree = new ES3Walker(new CommonTreeNodeStream(r.Tree));
 			return tree.program();
-		}
+                }
+
+                public static TsType ParseType(string source)
+                {
+                    var lex = new ES3Lexer(new ANTLRStringStream(source));
+                    CommonTokenStream tokens = new CommonTokenStream(lex);
+                    var parser = new ES3Parser(tokens);
+
+                    var r = parser.type();
+                    if (r.Tree == null)
+                        return null;
+                    var tree = new ES3Walker(new CommonTreeNodeStream(r.Tree));
+                    return tree.type();
+                }
+
+                public static TsSourceElement ParseSourceElement(string source)
+                {
+                    var lex = new ES3Lexer(new ANTLRStringStream(source));
+                    CommonTokenStream tokens = new CommonTokenStream(lex);
+                    var parser = new ES3Parser(tokens);
+
+                    var r = parser.sourceElement();
+                    if (r.Tree == null)
+                        return null;
+                    var tree = new ES3Walker(new CommonTreeNodeStream(r.Tree));
+                    return tree.sourceElement();
+                }
 	}
 }
