@@ -560,10 +560,10 @@ namespace TypeScriptModel
                     _cb.Append(expression.NumberValue.ToString(CultureInfo.InvariantCulture));
                     break;
                 case ExpressionNodeType.Regexp:
-                    _cb.Append("/" + expression.RegexpValue.Pattern.EscapeJavascriptRegexStringLiteral() + "/" + expression.RegexpValue.Options);
+                    _cb.Append(expression.RegexpValue.Pattern.EscapeJavascriptRegexStringLiteral() + expression.RegexpValue.Options);
                     break;
                 case ExpressionNodeType.String:
-                    _cb.Append("'" + expression.StringValue.EscapeJavascriptQuotedStringLiteral() + "'");
+                    _cb.Append(expression.StringValue.EscapeJavascriptQuotedStringLiteral());
                     break;
                 case ExpressionNodeType.Boolean:
                     _cb.Append(expression.BooleanValue ? "true" : "false");
@@ -580,6 +580,7 @@ namespace TypeScriptModel
             if (expression.Name != null)
                 _cb.Append(" ").Append(expression.Name);
             FormatCallSignature(expression);
+            _cb.Append(" ");
             VisitStatement(expression.Body, false);
 
             return null;
@@ -624,7 +625,7 @@ namespace TypeScriptModel
                         else
                             _cb.Append("," + _space);
                     }
-                    _cb.Append(v.Name.IsValidJavaScriptIdentifier() ? v.Name : ("'" + v.Name.EscapeJavascriptQuotedStringLiteral() + "'"))
+                    _cb.Append(v.Name.IsValidJavaScriptIdentifier() ? v.Name : (v.Name.EscapeJavascriptQuotedStringLiteral()))
                        .Append(":" + _space);
                     VisitExpression(v.Value, GetPrecedence(v.Value.NodeType) >= PrecedenceComma); // We ned to parenthesize comma expressions, eg. [1, (2, 3), 4]
                     first = false;
@@ -1171,6 +1172,7 @@ namespace TypeScriptModel
             FormatCallSignature(statement);
             if(statement.Body != null)
             {
+                _cb.Append(" ");
                 VisitStatement(statement.Body, addNewline);
             }
             else

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TypeScriptModel;
 using TypeScriptModel.Elements;
+using TypeScriptModel.TypeSystem;
 
 namespace TypeScriptParser.Tests
 {
@@ -26,6 +27,11 @@ namespace TypeScriptParser.Tests
         }
 
         public static void SerializedTypeMatchesInput(string source, TsSourceElement type)
+        {
+            Assert.That(OutputFormatter.Format(type, false).Replace("\r\n", "\n").Replace("\t", "    "), Is.EqualTo(source.Replace("\r\n", "\n").Replace("\t", "    ")));
+        }
+
+        public static void SerializedTypeMatchesInput(string source, TsType type)
         {
             Assert.That(OutputFormatter.Format(type, false).Replace("\r\n", "\n").Replace("\t", "    "), Is.EqualTo(source.Replace("\r\n", "\n").Replace("\t", "    ")));
         }

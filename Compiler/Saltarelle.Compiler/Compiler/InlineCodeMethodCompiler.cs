@@ -8,6 +8,7 @@ using ICSharpCode.NRefactory.TypeSystem;
 using Saltarelle.Compiler.JSModel;
 using Saltarelle.Compiler.JSModel.Expressions;
 using Saltarelle.Compiler.JSModel.Statements;
+using TypeScriptModel.Elements;
 
 namespace Saltarelle.Compiler.Compiler {
 	public static class InlineCodeMethodCompiler {
@@ -218,7 +219,7 @@ namespace Saltarelle.Compiler.Compiler {
 				return new List<JsStatement> { JsStatement.Empty };
 			try {
 				var stmts = JavaScriptParser.Parser.ParseProgram(textAndSubstitution.Item1);
-				return new Substituter(textAndSubstitution.Item2, errorReporter).Process(stmts.Select(s => (JsStatement)s).ToList());
+				return new Substituter(textAndSubstitution.Item2, errorReporter).Process(stmts.Select(s => ((TsStatementElement)s).Statement).ToList());
 			}
 			catch (RecognitionException) {
 				errorReporter("syntax error in inline code");

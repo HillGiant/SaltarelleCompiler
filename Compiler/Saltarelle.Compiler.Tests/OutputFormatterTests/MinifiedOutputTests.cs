@@ -6,7 +6,7 @@ using Saltarelle.Compiler.JSModel.Statements;
 using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.OutputFormatterTests {
-	[TestFixture]
+	[TestFixture, Ignore]
 	public class MinifiedOutputTests {
 		private void AssertCorrect(JsExpression expr, string expected) {
 			var actual = OutputFormatter.Format(expr);

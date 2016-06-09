@@ -349,7 +349,7 @@
         {
             var input =
 @"{
-    <T extends { a: string; b: number; }, U extends foo>();
+    <T extends {a: string; b: number; }, U extends foo>();
 }";
             var type = ParseType<TsObjectType>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));
@@ -362,7 +362,7 @@
             Assert.That(callSig.TypeParameters[1].Name, Is.EqualTo("U"));
             Assert.That(callSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
 
-            Assert.That(SerializedTypeMatchesInput(input, type));
+            TestUtils.SerializedTypeMatchesInput(input, type);
         }
 
         [Test]
@@ -618,7 +618,7 @@
             Assert.That(methodSig.TypeParameters[1].Name, Is.EqualTo("U"));
             Assert.That(methodSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
 
-            Assert.That(SerializedTypeMatchesInput(input, type));
+            TestUtils.SerializedTypeMatchesInput(input, type);
         }
 
 
@@ -797,7 +797,7 @@
             Assert.That(constSig.TypeParameters[1].Name, Is.EqualTo("U"));
             Assert.That(constSig.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
 
-            Assert.That(SerializedTypeMatchesInput(input, type));
+            TestUtils.SerializedTypeMatchesInput(input, type);
         }
 
         [Test]
@@ -930,7 +930,7 @@
             Assert.That(funcType.TypeParameters[1].Name, Is.EqualTo("U"));
             Assert.That(funcType.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
 
-            Assert.That(SerializedTypeMatchesInput(input, funcType));
+            TestUtils.SerializedTypeMatchesInput(input, funcType);
         }
 
         [Test]
@@ -1035,7 +1035,7 @@
             Assert.That(constType.TypeParameters[1].Name, Is.EqualTo("U"));
             Assert.That(constType.TypeParameters[1].Constraint, Is.TypeOf<TsTypeReference>());
 
-            Assert.That(SerializedTypeMatchesInput(input, constType));
+            TestUtils.SerializedTypeMatchesInput(input, constType);
         }
 
         [Test]

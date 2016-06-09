@@ -277,7 +277,7 @@ public class C1 {
 			}, "File.cs", "Test.dll", "Test.js");
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void MinimizeScriptWorks() {
 			UsingFiles(() => {
 				File.WriteAllText(Path.GetFullPath("File.cs"), @"class Class1 { public void M(int someVariable) {} }");

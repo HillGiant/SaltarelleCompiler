@@ -298,6 +298,12 @@ fragment LineTerminator
 EOL
 	: ( ( CR LF? ) | LF | LS | PS ) { $channel = Hidden; }
 	;
+
+        
+GOTO		:	'goto' { if (!AllowCustomKeywords) { $type = Identifier; } };
+AWAIT		:	'await' { if (!AllowCustomKeywords) { $type = Identifier; } };
+YIELD		:	'yield' { if (!AllowCustomKeywords) { $type = Identifier; } };
+
 // $>
 
 // $<	Comments (7.4)
@@ -1015,6 +1021,10 @@ statementTail
 	| switchStatement
 	| throwStatement
 	| tryStatement
+        //| debuggerStatement
+ 	| gotoStatement
+ 	| yieldStatement
+ 	| awaitStatement
 	;
 
 // $<Block (12.1)
@@ -1357,6 +1367,23 @@ options
 // $>
 
 // $>
+
+//debuggerStatement
+//	: DEBUGGER;
+
+ /* CUSTOM STUFF
+ */
+ gotoStatement
+ 	: GOTO^ Identifier semic!
+ 	;
+ 
+ yieldStatement
+ 	: YIELD^ ((RETURN! expression) | BREAK!) semic!
+ 	;
+ 
+ awaitStatement
+ 	: AWAIT^ expression COLON! Identifier semic!
+ 	;
 
 // <$ Typescript extensions
 

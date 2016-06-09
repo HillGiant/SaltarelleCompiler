@@ -476,7 +476,10 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests {
 
 		[Test]
 		public void Program() {
-			var stmts = JavaScriptParser.Parser.ParseProgram("x;y;");
+			var stmts = JavaScriptParser.Parser.ParseProgram(
+@"x;
+y;"
+                            );
 			Assert.That(stmts.Count, Is.EqualTo(2));
 			Assert.That(OutputFormatter.Format(stmts[0]).Replace("\r\n", "\n"), Is.EqualTo("x;\n"));
 			Assert.That(OutputFormatter.Format(stmts[1]).Replace("\r\n", "\n"), Is.EqualTo("y;\n"));
