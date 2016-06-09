@@ -7,23 +7,30 @@ namespace Saltarelle.Compiler.JSModel {
 		private int _indentLevel = 0;
 		private readonly StringBuilder _sb;
 		private bool _atLineStart;
+                private bool _inline;
 
 		private string GetIndent() {
-			string result;
-			if (_indents.TryGetValue(_indentLevel, out result))
-				return result;
-			result = new string('\t', _indentLevel);
-			_indents.TryAdd(_indentLevel, result);
-			return result;
+                    if (_inline)
+                    {
+                        return " ";
+                    }
+		    string result;
+		    if (_indents.TryGetValue(_indentLevel, out result))
+			    return result;
+		    result = new string('\t', _indentLevel);
+		    _indents.TryAdd(_indentLevel, result);
+		    return result;
 		}
 		
-		public CodeBuilder(int indentLevel = 0) : this(new StringBuilder(), indentLevel) {
+		public CodeBuilder(int indentLevel = 0, bool inline = false) : this(new StringBuilder(), indentLevel, inline) {
 		}
-		
-		public CodeBuilder(StringBuilder sb, int indentLevel = 0) {
+
+                public CodeBuilder(StringBuilder sb, int indentLevel = 0, bool inline = false)
+                {
 			this._sb = sb;
 			this._indentLevel = indentLevel;
 			this._atLineStart = true;
+                        this._inline = inline;
 		}
 		
 		internal int IndentLevel { get { return _indentLevel; } }
@@ -58,9 +65,13 @@ namespace Saltarelle.Compiler.JSModel {
 		}
 		
 		public CodeBuilder AppendLine() {
-			_sb.AppendLine();
-			_atLineStart = true;
-			return this;
+                    if (!this._inline)
+                    {
+                        _sb.AppendLine();
+                    }
+
+		    _atLineStart = true;
+		    return this;
 		}
 		
 		public CodeBuilder PreventIndent() {

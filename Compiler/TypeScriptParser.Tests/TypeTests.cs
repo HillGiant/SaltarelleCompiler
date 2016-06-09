@@ -349,7 +349,7 @@
         {
             var input =
 @"{
-    <T extends {a: string; b: number; }, U extends foo>();
+    <T extends { a: string; b: number; }, U extends foo>();
 }";
             var type = ParseType<TsObjectType>(input);
             Assert.That(type.Members.Count, Is.EqualTo(1));

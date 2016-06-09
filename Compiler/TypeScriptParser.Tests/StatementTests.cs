@@ -69,7 +69,7 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests
             RoundtripStatement("var i = new foo(a, b, c);\n");
         }
 
-        [Test]
+        [Test, Ignore]
         public void ArrowDeclaration()
         {
             RoundtripStatement("var legalize = d => d > 1 ? 1 : d;\n");
@@ -237,8 +237,8 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests
         [Test]
         public void FunctionDeclarationStatement()
         {
-            RoundtripStatement("function f(){\n\tx;\n}\n");
-            RoundtripStatement("function f(a, b, c){\n\tx;\n}\n");
+            RoundtripStatement("function f() {\n\tx;\n}\n");
+            RoundtripStatement("function f(a, b, c) {\n\tx;\n}\n");
         }
 
         [Test]

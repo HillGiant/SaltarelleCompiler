@@ -27,7 +27,7 @@ namespace TypeScriptModel
         public OutputFormatter(bool allowIntermediates, bool inline = false)
         {
             _allowIntermediates = allowIntermediates;
-            _cb = new CodeBuilder(0);
+            _cb = new CodeBuilder(0, inline);
         }
 
         public static string Format(TsSourceElement element, bool allowIntermediates = false)
@@ -180,7 +180,7 @@ namespace TypeScriptModel
             return null;
         }
 
-        public object VisitObjectType(TsObjectType type, bool inline)
+        public object VisitObjectType(TsObjectType type, bool data)
         {
             this.FormatTypeMemberList(type.Members);
             return null;
@@ -230,7 +230,7 @@ namespace TypeScriptModel
             _cb.Append(typeParameter.Name);
             if (typeParameter.Constraint != null)
             {
-                this._cb.Append(" extends ");
+                this._cb.Append(" extends");
                 var inlineFormatter = new OutputFormatter(false, true);
                 typeParameter.Constraint.Accept(inlineFormatter, false);
                 this._cb.Append(inlineFormatter._cb.ToString());
