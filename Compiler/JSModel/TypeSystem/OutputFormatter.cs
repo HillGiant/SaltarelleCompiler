@@ -19,15 +19,67 @@ namespace TypeScriptModel
     public class OutputFormatter : ITypeVisitor<object, bool>, ITypeMemberVisitor<object, bool>, IExpressionVisitor<object, bool>, IStatementVisitor<object, bool>, ISourceElementVisitor<object, bool>, IClassMemberVisitor<object, bool>
     {
         private readonly bool _allowIntermediates;
+        private readonly bool _minify;
+        private readonly string _space;
 
         private CodeBuilder _cb;
 
-        private string _space = " ";
-
-        public OutputFormatter(bool allowIntermediates, bool inline = false)
+        public OutputFormatter(bool allowIntermediates, bool inline = false, bool minify = false)
         {
             _allowIntermediates = allowIntermediates;
+            _minify = minify;
+            _space = minify ? "" : " ";
             _cb = new CodeBuilder(0, inline);
+        }
+
+        public static string FormatMinified(TsSourceElement element, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            element.Accept(fmt, false);
+            return fmt._cb.ToString();
+        }
+
+        public static string FormatMinified(TsType type, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            type.Accept(fmt, false);
+            return fmt._cb.ToString();
+        }
+
+        public static string FormatMinified(JsExpression expression, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            fmt.VisitExpression(expression, false);
+            return fmt._cb.ToString();
+        }
+
+        public static string FormatMinified(JsStatement statement, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            fmt.VisitStatement(statement, false);
+            return fmt._cb.ToString();
+        }
+
+        public static string FormatMinified(IList<TsSourceElement> elements, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            foreach (var element in elements)
+            {
+                fmt.VisitElement(element, false);
+                fmt._cb.AppendLine();
+            }
+            return fmt._cb.ToString();
+        }
+
+        public static string FormatMinified(IList<JsStatement> elements, bool allowIntermediates = false)
+        {
+            var fmt = new OutputFormatter(allowIntermediates, false, true);
+            foreach (var element in elements)
+            {
+                fmt.VisitStatement(element, false);
+                fmt._cb.AppendLine();
+            }
+            return fmt._cb.ToString();
         }
 
         public static string Format(TsSourceElement element, bool allowIntermediates = false)
@@ -36,8 +88,6 @@ namespace TypeScriptModel
             element.Accept(fmt, false);
             return fmt._cb.ToString();
         }
-
-
 
         public static string Format(TsType type, bool allowIntermediates = false)
         {
@@ -163,7 +213,7 @@ namespace TypeScriptModel
                 {
                     if (!first)
                     {
-                        _cb.Append(", ");
+                        _cb.Append("," + this._space);
                     }
                     FormatParameter(p);
                     first = false;
@@ -580,7 +630,10 @@ namespace TypeScriptModel
             if (expression.Name != null)
                 _cb.Append(" ").Append(expression.Name);
             FormatCallSignature(expression);
-            _cb.Append(" ");
+            if (!_minify)
+            {
+                _cb.Append(" ");
+            }
             VisitStatement(expression.Body, false);
 
             return null;
@@ -609,7 +662,7 @@ namespace TypeScriptModel
             }
             else
             {
-                bool multiline = expression.Values.Any(p => p.Value is JsFunctionDefinitionExpression);
+                bool multiline = !_minify && expression.Values.Any(p => p.Value is JsFunctionDefinitionExpression);
                 if (multiline)
                     _cb.AppendLine("{").Indent();
                 else
@@ -921,21 +974,29 @@ namespace TypeScriptModel
 
         public object VisitComment(JsComment comment, bool data)
         {
-            foreach (var l in comment.Text.Replace("\r", "").Split('\n'))
-                _cb.AppendLine("//" + l);
+            if (!_minify)
+            {
+                foreach (var l in comment.Text.Replace("\r", "").Split('\n'))
+                    _cb.AppendLine("//" + l);
+            }
             return null;
         }
 
         public object VisitBlockStatement(JsBlockStatement statement, bool addNewline)
         {
             _cb.Append("{");
-            _cb.AppendLine();
+            if (!_minify)
+            {
+                _cb.AppendLine();
+            }
             _cb.Indent();
             foreach (var c in statement.Statements)
-                VisitStatement(c, true);
+                VisitStatement(c, !_minify);
             _cb.Outdent().Append("}");
-            if (addNewline)
+            if (!_minify && addNewline)
+            {
                 _cb.AppendLine();
+            }
             return null;
         }
 
@@ -1053,7 +1114,7 @@ namespace TypeScriptModel
             _cb.Append("if").Append(_space + "(");
             VisitExpression(statement.Test, false);
             _cb.Append(")" + _space);
-            VisitStatement(statement.Then, (statement.Else != null || addNewline));
+            VisitStatement(statement.Then, !_minify && (statement.Else != null || addNewline));
             if (statement.Else != null)
             {
                 _cb.Append("else");
@@ -1093,14 +1154,19 @@ namespace TypeScriptModel
             VisitExpression(statement.Expression, false);
             _cb.Append(")" + _space);
             _cb.Append("{").Indent();
-            _cb.AppendLine();
+            if (!_minify)
+            {
+                _cb.AppendLine();
+            }
             foreach (var clause in statement.Sections)
             {
                 bool first = true;
                 foreach (var v in clause.Values)
                 {
-                    if (!first)
+                    if (!first && !_minify)
+                    {
                         _cb.AppendLine();
+                    }
                     if (v != null)
                     {
                         _cb.Append("case ");
@@ -1114,7 +1180,7 @@ namespace TypeScriptModel
                     first = false;
                 }
                 _cb.Append(_space);
-                VisitStatement(clause.Body, true);
+                VisitStatement(clause.Body, !_minify);
             }
             _cb.Outdent().Append("}");
             if (addNewline)
@@ -1135,19 +1201,19 @@ namespace TypeScriptModel
         public object VisitTryStatement(JsTryStatement statement, bool addNewline)
         {
             _cb.Append("try" + _space);
-            VisitStatement(statement.GuardedStatement, true);
+            VisitStatement(statement.GuardedStatement, !_minify);
             if (statement.Catch != null)
             {
                 _cb.Append("catch")
                    .Append(_space + "(")
                    .Append(statement.Catch.Identifier)
                    .Append(")" + _space);
-                VisitStatement(statement.Catch.Body, addNewline || statement.Finally != null);
+                VisitStatement(statement.Catch.Body, !_minify&&(addNewline || statement.Finally != null));
             }
             if (statement.Finally != null)
             {
                 _cb.AppendFormat("finally" + _space);
-                VisitStatement(statement.Finally, addNewline);
+                VisitStatement(statement.Finally, !_minify && addNewline);
             }
             return null;
         }
@@ -1202,7 +1268,11 @@ namespace TypeScriptModel
         public object VisitLabelledStatement(JsLabelledStatement statement, bool addNewline)
         {
             _cb.Append(statement.Label).Append(":");
-            _cb.AppendLine();
+            if (!_minify)
+            {
+                _cb.AppendLine();
+            }
+            
             VisitStatement(statement.Statement, addNewline);
             return null;
         }
@@ -1213,7 +1283,7 @@ namespace TypeScriptModel
             FormatCallSignature(statement);
             if(statement.Body != null)
             {
-                _cb.Append(" ");
+                _cb.Append(this._space);
                 VisitStatement(statement.Body, addNewline);
             }
             else

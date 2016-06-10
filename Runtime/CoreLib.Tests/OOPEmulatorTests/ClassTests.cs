@@ -10,7 +10,9 @@ using Saltarelle.Compiler.Tests;
 using TypeScriptModel;
 
 namespace CoreLib.Tests.OOPEmulatorTests {
-	[TestFixture]
+    using TypeScriptModel.Elements;
+
+    [TestFixture]
 	public class ClassTests : OOPEmulatorTestBase {
 		[Test]
 		public void NonGenericClassWithAllDataWorks() {
@@ -1337,7 +1339,7 @@ interface I2<T> : I1 {}
 		public void TheTypesStaticInitStatementsAreReturnedAsTheStaticInitStatementsForNormalTypes() {
 			var compilation = Compile(@"class C { static C() { int x = 0; int y = 1; } }");
 			var statements = compilation.Item2.GetStaticInitStatements((JsClass)compilation.Item3.Single());
-			var actual = OutputFormatter.Format(statements, allowIntermediates: true);
+			var actual = OutputFormatter.Format(statements.Select(s => (TsSourceElement)new TsStatementElement(s)).ToList(), allowIntermediates: true);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo("(function() {\n\tvar x = 0;\n\tvar y = 1;\n})();\n"));
 		}
 

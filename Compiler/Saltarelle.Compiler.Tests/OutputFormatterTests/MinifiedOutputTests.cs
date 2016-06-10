@@ -6,15 +6,15 @@ using Saltarelle.Compiler.JSModel.Statements;
 using TypeScriptModel;
 
 namespace Saltarelle.Compiler.Tests.OutputFormatterTests {
-	[TestFixture, Ignore]
+	[TestFixture]
 	public class MinifiedOutputTests {
 		private void AssertCorrect(JsExpression expr, string expected) {
-			var actual = OutputFormatter.Format(expr);
+			var actual = OutputFormatter.FormatMinified(expr);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(expected.Replace("\r\n", "\n")));
 		}
 
 		private void AssertCorrect(JsStatement stmt, string expected) {
-			var actual = OutputFormatter.Format(stmt);
+            var actual = OutputFormatter.FormatMinified(stmt);
 			Assert.That(actual.Replace("\r\n", "\n"), Is.EqualTo(expected.Replace("\r\n", "\n")));
 		}
 

@@ -449,6 +449,8 @@ identifierAllowedKeyword
     | TYPE
     | FINAL
     | THROWS
+    | FOR
+    | WHILE
     ;
 
 /*

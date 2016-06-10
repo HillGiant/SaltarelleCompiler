@@ -1,14 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using CoreLib.Plugin;
 using ICSharpCode.NRefactory.TypeSystem;
 using NUnit.Framework;
-using Saltarelle.Compiler.JSModel;
-using Saltarelle.Compiler.Tests;
 
 namespace CoreLib.Tests.OOPEmulatorTests {
-	[TestFixture]
+    using TypeScriptModel;
+
+    [TestFixture]
 	public class OverallStructureTests : OOPEmulatorTestBase {
 		private class Resource : IAssemblyResource {
 			public string Name { get; private set; }

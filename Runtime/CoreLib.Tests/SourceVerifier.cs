@@ -14,7 +14,9 @@ using Saltarelle.Compiler.Tests;
 using CompilerOptions = Saltarelle.Compiler.CompilerOptions;
 
 namespace CoreLib.Tests {
-	public static class SourceVerifier {
+    using TypeScriptModel;
+
+    public static class SourceVerifier {
 		private class MockLinker : ILinker {
 			public IList<JsStatement> Process(IList<JsStatement> statements) {
 				throw new NotImplementedException();

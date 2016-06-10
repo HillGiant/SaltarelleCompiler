@@ -16,7 +16,9 @@ using Saltarelle.Compiler.ScriptSemantics;
 using Saltarelle.Compiler.Tests;
 
 namespace CoreLib.Tests.LinkerTests {
-	[TestFixture]
+    using TypeScriptModel;
+
+    [TestFixture]
 	public class LinkerTests {
 		private string Process(IList<JsStatement> stmts, IAssembly[] assemblies, IMetadataImporter metadata = null, INamer namer = null) {
 			var compilation = new Mock<ICompilation>();
