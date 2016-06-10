@@ -481,8 +481,8 @@ namespace Saltarelle.Compiler.Tests.JavaScriptParserTests {
 y;"
                             );
 			Assert.That(stmts.Count, Is.EqualTo(2));
-			Assert.That(OutputFormatter.Format(stmts[0]).Replace("\r\n", "\n"), Is.EqualTo("x;\n"));
-			Assert.That(OutputFormatter.Format(stmts[1]).Replace("\r\n", "\n"), Is.EqualTo("y;\n"));
+			Assert.That(OutputFormatter.Format(stmts[0]).Replace("\r\n", "\n"), Is.EqualTo("x;"));
+			Assert.That(OutputFormatter.Format(stmts[1]).Replace("\r\n", "\n"), Is.EqualTo("y;"));
 		}
 
 		[Test]

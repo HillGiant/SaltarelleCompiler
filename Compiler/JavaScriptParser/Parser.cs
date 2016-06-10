@@ -17,7 +17,7 @@ namespace JavaScriptParser {
 			var tokens = new CommonTokenStream(lex);
 			var parser = new ES3Parser(tokens);
 
-			var r = parser.expression();
+			var r = parser.expressionOnly();
 			var tree = new ES3Walker(new CommonTreeNodeStream(r.Tree));
 			return tree.expression();
 		}
